@@ -856,80 +856,91 @@
     let composedQRDataUrl = null;
 
     async function composeQRCanvas(data) {
-      await new Promise(r => setTimeout(r, 80));   // espera render de qrcodejs
+      await new Promise(r => setTimeout(r, 80));
 
       const rawQR = document.querySelector('#qr-canvas canvas');
       if (!rawQR) return;
 
-      const qrSize = 260;
-      const pad    = 20;
-      const labelH = 62;                           // espacio para texto debajo
-      const W = qrSize + pad * 2;                  // 300
-      const H = qrSize + pad * 2 + labelH;         // 362
+      const qrSize  = 260;
+      const pad     = 20;
+      const logoMaxW = 190;
+
+      // Altura del logo respetando el aspect ratio
+      const hasLogo = logoImg.complete && logoImg.naturalWidth > 0;
+      const logoDrawH = hasLogo
+        ? Math.round(logoMaxW * logoImg.naturalHeight / logoImg.naturalWidth)
+        : 0;
+
+      // Specs como texto (unidas con · )
+      const specs = (data.specs || '').split(',').map(s => s.trim()).filter(Boolean);
+      const specsLine = specs.length
+        ? (specs.join('  ·  ').length > 42
+            ? specs.join('  ·  ').slice(0, 39) + '…'
+            : specs.join('  ·  '))
+        : '';
+
+      // Dimensiones del canvas
+      const logoArea = hasLogo ? logoDrawH + 14 : 0;  // logo + gap
+      const textH    = 20 + 18 + (specsLine ? 16 : 0) + 14;  // sku + nombre + specs + bottom pad
+      const W = qrSize + pad * 2;                     // 300px
+      const H = pad + logoArea + qrSize + pad + textH;
 
       const c = document.createElement('canvas');
       c.width = W; c.height = H;
       const ctx = c.getContext('2d');
+      ctx.textBaseline = 'alphabetic';
 
-      // Fondo blanco (coincide con el logo negro sobre blanco)
+      // Fondo blanco
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
 
-      // QR
-      ctx.drawImage(rawQR, pad, pad, qrSize, qrSize);
+      let y = pad;
 
-      // Logo centrado sobre el QR — respeta el aspecto ratio original
-      if (logoImg.complete && logoImg.naturalWidth > 0) {
-        // Ancho máximo: 40% del QR — nivel H soporta 30% de oclusión SÓLIDA,
-        // pero como este logo tiene fondo transparente el área real cubierta es ~8%
-        const maxLogoW = Math.floor(qrSize * 0.40);
-        const aspect   = logoImg.naturalWidth / logoImg.naturalHeight;
-        const logoW    = maxLogoW;
-        const logoH    = Math.round(logoW / aspect);
-
-        const lx = pad + Math.floor((qrSize - logoW) / 2);
-        const ly = pad + Math.floor((qrSize - logoH) / 2);
-
-        // Fondo blanco detrás del logo
-        const bgPad = 7;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(lx - bgPad, ly - bgPad, logoW + bgPad * 2, logoH + bgPad * 2);
-
-        // Logo sin distorsión
-        ctx.drawImage(logoImg, lx, ly, logoW, logoH);
+      // ── Logo arriba, centrado, sin distorsión ──
+      if (hasLogo) {
+        const lx = Math.floor((W - logoMaxW) / 2);
+        ctx.drawImage(logoImg, lx, y, logoMaxW, logoDrawH);
+        y += logoDrawH + 14;
       }
 
-      // Línea separadora
-      const textY = pad + qrSize + pad;
-      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      // ── QR limpio (sin overlay) ──
+      ctx.drawImage(rawQR, pad, y, qrSize, qrSize);
+      y += qrSize + pad;
+
+      // Separador
+      ctx.strokeStyle = 'rgba(0,0,0,0.10)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(pad, textY - 4);
-      ctx.lineTo(W - pad, textY - 4);
+      ctx.moveTo(pad, y - 6);
+      ctx.lineTo(W - pad, y - 6);
       ctx.stroke();
 
-      // SKU / serie — negro
-      ctx.font = '700 13px "Outfit","Helvetica Neue",Arial,sans-serif';
-      ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
-      ctx.fillText(data.serie, W / 2, textY + 14);
 
-      // Nombre del equipo — negro
-      const nameText = data.nombre.length > 32
-        ? data.nombre.slice(0, 29) + '…'
-        : data.nombre;
-      ctx.font = '400 11px "Outfit","Helvetica Neue",Arial,sans-serif';
+      // SKU — negro bold
+      ctx.font = 'bold 13px "Outfit","Helvetica Neue",Arial,sans-serif';
       ctx.fillStyle = '#000000';
-      ctx.fillText(nameText, W / 2, textY + 30);
+      ctx.fillText(data.serie, W / 2, y + 13);
+      y += 20;
 
-      // "LA MADRIGUERA" — verde acento
-      ctx.font = '700 9px "Outfit","Helvetica Neue",Arial,sans-serif';
-      ctx.fillStyle = '#c5e829';
-      ctx.fillText('LA MADRIGUERA', W / 2, textY + 50);
+      // Nombre — negro
+      const nameText = data.nombre.length > 34
+        ? data.nombre.slice(0, 31) + '…'
+        : data.nombre;
+      ctx.font = '400 12px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.fillStyle = '#000000';
+      ctx.fillText(nameText, W / 2, y + 10);
+      y += 18;
+
+      // Specs — negro
+      if (specsLine) {
+        ctx.font = '400 10px "Outfit","Helvetica Neue",Arial,sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText(specsLine, W / 2, y + 8);
+      }
 
       composedQRDataUrl = c.toDataURL('image/png');
 
-      // Reemplaza el canvas crudo con la imagen compuesta en el preview
       document.getElementById('qr-canvas').innerHTML =
         `<img src="${composedQRDataUrl}" style="width:260px;height:auto;display:block;" />`;
     }
