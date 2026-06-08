@@ -1,0 +1,14 @@
+{
+  "name": "la-madriguera-qr-api",
+  "version": "1.0.0",
+  "description": "API de hojas de vida de equipos — La Madriguera Rental House",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev":   "node --experimental-sqlite --watch server.js"
+  },
+  "dependencies": {
+    "cors":    "^2.8.5",
+    "express": "^4.18.3"
+  }
+}

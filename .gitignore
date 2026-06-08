@@ -1,0 +1,19 @@
+# Dependencias
+node_modules/
+
+# Base de datos (se genera en el servidor)
+*.db
+*.db-shm
+*.db-wal
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Logs
+*.log
+logs/
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Madriguera — Sistema QR</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:      #0c0e09;
+      --bg2:     #141610;
+      --bg3:     #1a1d14;
+      --accent:  #c5e829;
+      --white:   #f2f2ed;
+      --muted:   #7a7a72;
+      --border:  rgba(255,255,255,0.08);
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'Outfit', sans-serif;
+      --error: #f87171;
+      --success: #4ade80;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar              { width: 5px; }
+    ::-webkit-scrollbar-track        { background: var(--bg); }
+    ::-webkit-scrollbar-thumb        { background: rgba(197,232,41,0.4); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover  { background: var(--accent); }
+
+    input, select, textarea {
+      color-scheme: dark;
+      font-family: var(--font-body);
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      background: rgba(12,14,9,0.96);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-brand-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      color: var(--white);
+    }
+    .header-brand-sep {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+    }
+    .header-badge {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .header-back {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .header-back:hover { color: var(--accent); border-color: rgba(197,232,41,0.4); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 48px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 18px 28px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      margin-bottom: -1px;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--white); }
+
+    /* ── Main layout ── */
+    .main { max-width: 1300px; margin: 0 auto; padding: 48px 48px 80px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Two-column grid ── */
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+    /* ── Section label ── */
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 44px;
+      line-height: 0.9;
+      margin-bottom: 32px;
+    }
+
+    /* ── Form ── */
+    .form { display: flex; flex-direction: column; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 11px 14px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .field-input:focus { border-color: rgba(197,232,41,0.45); box-shadow: 0 0 0 3px rgba(197,232,41,0.06); }
+    .field-input.error { border-color: var(--error); }
+    .field-error { font-size: 11px; color: var(--error); }
+    .field-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    select.field-input option { background: var(--bg2); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--accent);
+      color: #0c0e09;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+    .btn-primary:hover { background: #d4f535; transform: translateY(-1px); }
+    .btn-primary:disabled { background: rgba(255,255,255,0.08); color: var(--muted); cursor: default; transform: none; }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--error);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      border: 1px solid rgba(248,113,113,0.3);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-danger:hover { background: rgba(248,113,113,0.08); border-color: var(--error); }
+
+    /* ── QR Preview panel ── */
+    .preview-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .preview-empty {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .preview-empty-icon {
+      font-size: 40px;
+      opacity: 0.15;
+      margin-bottom: 14px;
+    }
+    .preview-empty-text {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .preview-empty-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    #qr-canvas { line-height: 0; }
+    #qr-canvas img, #qr-canvas canvas {
+      border: 8px solid var(--white);
+      display: block;
+    }
+
+    .qr-actions { display: flex; gap: 8px; width: 100%; }
+    .qr-actions .btn-secondary { flex: 1; text-align: center; }
+
+    /* ── Hoja de vida card ── */
+    .hoja-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--accent);
+      padding: 20px 22px;
+      width: 100%;
+    }
+    .hoja-card-nombre {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .hoja-card-cat {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .hoja-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px;
+    }
+    .hoja-card-row-label { color: var(--muted); }
+    .hoja-card-row-value { color: var(--white); font-weight: 500; }
+    .specs-chips { display: flex; flex-wrap: wrap; gap: 4; margin-top: 12px; }
+    .spec-chip {
+      padding: 4px 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Domain config bar ── */
+    .config-bar {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 2px solid rgba(197,232,41,0.4);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .config-bar-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    .config-bar-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 12px;
+      outline: none;
+      min-width: 200px;
+    }
+    .config-bar-input:focus { border-color: rgba(197,232,41,0.4); }
+    .config-bar-save {
+      background: rgba(197,232,41,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(197,232,41,0.3);
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .config-bar-save:hover { background: rgba(197,232,41,0.18); }
+    .config-bar-status { font-size: 11px; color: var(--success); }
+
+    /* ── Scanner ── */
+    .scanner-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .scanner-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #reader { width: 100%; }
+    #reader video { width: 100% !important; height: auto !important; display: block; }
+    #reader img { display: none !important; }
+
+    .scanner-idle {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .scanner-idle-icon { font-size: 48px; opacity: 0.2; margin-bottom: 16px; }
+    .scanner-idle-text { font-family: var(--font-display); font-size: 28px; color: rgba(255,255,255,0.25); letter-spacing: 0.05em; margin-bottom: 8px; }
+    .scanner-idle-sub { font-size: 13px; color: var(--muted); }
+
+    .scanner-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .scanner-frame {
+      width: 200px;
+      height: 200px;
+      position: relative;
+    }
+    .scanner-frame::before,
+    .scanner-frame::after {
+      content: '';
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0.8;
+    }
+    .scanner-frame::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
+    .scanner-frame::after  { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+    .scanner-frame-tr, .scanner-frame-bl {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0.8;
+    }
+    .scanner-frame-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+    .scanner-frame-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+
+    .scanner-line {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+      animation: scanline 2s ease-in-out infinite;
+      opacity: 0.7;
+    }
+    @keyframes scanline {
+      0%   { top: 20px; }
+      50%  { top: calc(100% - 20px); }
+      100% { top: 20px; }
+    }
+
+    .scanner-controls { display: flex; gap: 8px; margin-bottom: 28px; }
+    .scanner-controls .btn-primary { flex: 1; }
+    .scanner-controls .btn-danger  { flex: 0 0 auto; }
+
+    /* ── Scan result ── */
+    .scan-result {
+      background: var(--bg2);
+      border: 1px solid rgba(197,232,41,0.25);
+      padding: 28px;
+      margin-top: 28px;
+    }
+    .scan-result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .scan-result-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+    .scan-result-title {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .scan-result-source {
+      margin-left: auto;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+    }
+    .source-online  { color: var(--success); border: 1px solid rgba(74,222,128,0.3); background: rgba(74,222,128,0.07); }
+    .source-offline { color: #facc15; border: 1px solid rgba(250,204,21,0.3); background: rgba(250,204,21,0.07); }
+
+    .scan-verify-btn {
+      background: rgba(197,232,41,0.08);
+      color: var(--accent);
+      border: 1px solid rgba(197,232,41,0.25);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 16px;
+      width: 100%;
+    }
+    .scan-verify-btn:hover { background: rgba(197,232,41,0.14); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--accent);
+      padding: 14px 22px;
+      font-size: 13px;
+      color: var(--white);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { border-left-color: var(--error); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="header-brand-name">LA MADRIGUERA</span>
+      <div class="header-brand-sep"></div>
+      <span class="header-badge">Sistema QR · Equipos</span>
+    </div>
+    <button class="header-back" onclick="window.location.href='../dise-o-web-la-madriguera/project/La%20Madriguera.html'">
+      ← Volver al sitio
+    </button>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('generar', this)">Generar QR</button>
+    <button class="tab-btn" onclick="switchTab('escanear', this)">Escanear QR</button>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ══ TAB: GENERAR ══ -->
+    <div id="tab-generar" class="tab-panel active">
+
+      <!-- Config bars -->
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:28px;">
+
+        <div class="config-bar" style="margin-bottom:0">
+          <span class="config-bar-label">Dominio servidor</span>
+          <input id="domain-input" type="url" class="config-bar-input"
+                 placeholder="https://tudominio.com" value="" />
+          <button class="config-bar-save" onclick="saveDomain()">Guardar</button>
+          <span id="domain-status" class="config-bar-status" style="display:none">✓ Guardado</span>
+        </div>
+
+        <div class="config-bar" style="margin-bottom:0">
+          <span class="config-bar-label" style="white-space:nowrap">
+            <span style="color:var(--accent);margin-right:6px;">▶</span>Google Sheets
+          </span>
+          <input id="sheets-input" type="url" class="config-bar-input"
+                 placeholder="URL del Apps Script desplegado…" value="" />
+          <button class="config-bar-save" onclick="saveSheets()">Guardar</button>
+          <button class="config-bar-save" id="sheets-test-btn" onclick="testSheets()"
+                  style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);">
+            Probar
+          </button>
+          <span id="sheets-status" class="config-bar-status" style="display:none"></span>
+        </div>
+
+      </div>
+
+      <div class="cols">
+
+        <!-- Form -->
+        <div>
+          <p class="label">Nuevo equipo</p>
+          <h2 class="section-title">GENERAR<br /><span style="color:var(--accent)">QR</span></h2>
+
+          <div class="form" id="gen-form">
+            <div class="field">
+              <label class="field-label">Nombre del equipo *</label>
+              <input id="f-nombre" type="text" class="field-input" placeholder="Ej. Sony FX6" />
+              <span class="field-error" id="e-nombre" style="display:none">Campo requerido</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Categoría *</label>
+              <select id="f-cat" class="field-input">
+                <option value="">— Selecciona —</option>
+                <option value="camaras">Cámaras</option>
+                <option value="lentes">Lentes</option>
+                <option value="tripodes">Soporte / Trípodes</option>
+                <option value="iluminacion">Iluminación</option>
+                <option value="audio">Audio</option>
+                <option value="drones">Drones</option>
+                <option value="monitores">Monitores</option>
+                <option value="grip">Grip</option>
+                <option value="steadicam">Steadicam</option>
+                <option value="sliders">Sliders</option>
+                <option value="otro">Otro</option>
+              </select>
+              <span class="field-error" id="e-cat" style="display:none">Selecciona una categoría</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Número de serie *</label>
+              <input id="f-serie" type="text" class="field-input" placeholder="Ej. SFX6-2024-001" />
+              <span class="field-error" id="e-serie" style="display:none">Campo requerido</span>
+              <span class="field-hint">Se usa como identificador único del equipo.</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Especificaciones</label>
+              <input id="f-specs" type="text" class="field-input" placeholder="Full-Frame, 4K 120fps, ISO 12800" />
+              <span class="field-hint">Separadas por coma.</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Descripción breve</label>
+              <textarea id="f-desc" class="field-input" rows="3"
+                        placeholder="Cámara de cine full-frame 4K con S-Log3..."></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="generateQR()">Generar QR</button>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div>
+          <p class="label">Vista previa</p>
+          <h2 class="section-title">HOJA<br /><span style="color:var(--accent)">DE VIDA</span></h2>
+
+          <div class="preview-panel" id="preview-panel">
+            <div class="preview-empty" id="preview-empty">
+              <div class="preview-empty-icon">⬛</div>
+              <p class="preview-empty-text">SIN DATOS</p>
+              <p class="preview-empty-sub">Completa el formulario y genera el QR</p>
+            </div>
+
+            <div id="preview-content" style="display:none; width:100%; display:none; flex-direction:column; align-items:center; gap:20px;">
+              <div id="qr-canvas"></div>
+
+              <div id="hoja-card" class="hoja-card" style="width:100%"></div>
+
+              <div class="qr-actions" id="qr-actions">
+                <button class="btn-secondary" onclick="downloadQR()">Descargar PNG</button>
+                <button class="btn-secondary" onclick="printQR()">Imprimir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TAB: ESCANEAR ══ -->
+    <div id="tab-escanear" class="tab-panel">
+      <div class="scanner-wrap">
+
+        <p class="label" style="margin-bottom:8px">Lector de QR</p>
+        <h2 class="section-title" style="margin-bottom:28px">ESCANEAR<br /><span style="color:var(--accent)">QR</span></h2>
+
+        <!-- Mode selector -->
+        <div style="display:flex;gap:2px;margin-bottom:16px;">
+          <button id="mode-camera" onclick="setMode('camera')" style="flex:1;padding:12px;background:var(--accent);color:#0c0e09;border:none;font-family:var(--font-body);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;">
+            📷 Cámara
+          </button>
+          <button id="mode-file" onclick="setMode('file')" style="flex:1;padding:12px;background:var(--bg3);color:var(--muted);border:1px solid var(--border);font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">
+            🖼 Subir imagen
+          </button>
+        </div>
+
+        <!-- Modo cámara -->
+        <div id="panel-camera">
+          <div class="scanner-box" id="scanner-box">
+            <div class="scanner-idle" id="scanner-idle">
+              <div class="scanner-idle-icon">📷</div>
+              <p class="scanner-idle-text">CÁMARA INACTIVA</p>
+              <p class="scanner-idle-sub">Presiona "Iniciar" para activar</p>
+            </div>
+            <div id="reader"></div>
+            <div class="scanner-overlay" id="scanner-overlay" style="display:none">
+              <div class="scanner-frame">
+                <div class="scanner-frame-tr"></div>
+                <div class="scanner-frame-bl"></div>
+                <div class="scanner-line"></div>
+              </div>
+            </div>
+          </div>
+          <div class="scanner-controls">
+            <button class="btn-primary" id="btn-start" onclick="startScanner()">Iniciar cámara</button>
+            <button class="btn-danger"  id="btn-stop"  onclick="stopScanner()" style="display:none">Detener</button>
+          </div>
+        </div>
+
+        <!-- Modo archivo -->
+        <div id="panel-file" style="display:none">
+          <div class="scanner-box" id="file-drop-zone"
+               style="min-height:240px;border:2px dashed rgba(255,255,255,0.12);cursor:pointer;flex-direction:column;gap:16px;"
+               onclick="document.getElementById('qr-file-input').click()"
+               ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+               ondragleave="this.style.borderColor='rgba(255,255,255,0.12)'"
+               ondrop="handleFileDrop(event)">
+            <div style="text-align:center;padding:40px 20px;">
+              <div style="font-size:44px;opacity:0.2;margin-bottom:14px;">🖼</div>
+              <p style="font-family:var(--font-display);font-size:24px;color:rgba(255,255,255,0.25);letter-spacing:0.05em;margin-bottom:8px;">ARRASTRA O PULSA</p>
+              <p style="font-size:12px;color:var(--muted);">Sube una foto o captura del QR</p>
+              <p style="font-size:11px;color:rgba(122,122,114,0.5);margin-top:6px;">PNG, JPG, WEBP</p>
+            </div>
+          </div>
+          <input id="qr-file-input" type="file" accept="image/*" style="display:none" onchange="handleFileSelect(event)" />
+          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;">
+            También funciona con capturas de pantalla de un QR
+          </p>
+        </div>
+
+        <!-- Scan result -->
+        <div id="scan-result" style="display:none"></div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Hidden div para escaneo de archivos (requerido por html5-qrcode) -->
+  <div id="__file_scanner_tmp" style="display:none"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Print style -->
+  <style id="print-style"></style>
+
+  <script>
+    /* ── Config ──────────────────────────────────────────────── */
+    const CONFIG_KEY = 'lm_qr_config';
+
+    function getConfig() {
+      try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); }
+      catch { return {}; }
+    }
+
+    function saveConfig(data) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify({ ...getConfig(), ...data }));
+    }
+
+    function saveDomain() {
+      const val = document.getElementById('domain-input').value.trim().replace(/\/$/, '');
+      saveConfig({ domain: val });
+      const status = document.getElementById('domain-status');
+      status.style.display = 'inline';
+      setTimeout(() => { status.style.display = 'none'; }, 2000);
+    }
+
+    function saveSheets() {
+      const val = document.getElementById('sheets-input').value.trim();
+      saveConfig({ sheetsUrl: val });
+      const status = document.getElementById('sheets-status');
+      status.textContent = '✓ Guardado';
+      status.style.color = 'var(--success)';
+      status.style.display = 'inline';
+      setTimeout(() => { status.style.display = 'none'; }, 2000);
+    }
+
+    async function testSheets() {
+      const url = document.getElementById('sheets-input').value.trim();
+      if (!url) { showToast('Pega primero la URL del Apps Script', true); return; }
+
+      const status = document.getElementById('sheets-status');
+      const btn    = document.getElementById('sheets-test-btn');
+      btn.textContent = '…';
+      status.style.display = 'none';
+
+      const ok = await sendToSheets(url, {
+        serie: 'TEST-000', nombre: 'Prueba de conexión',
+        cat: 'otro', specs: '', desc: 'Registro de prueba — puedes eliminarlo del Sheet',
+        url: window.location.href, fecha: new Date().toLocaleString('es-CO'),
+      });
+
+      btn.textContent = 'Probar';
+      status.style.display = 'inline';
+      if (ok) {
+        status.textContent = '✓ Conectado';
+        status.style.color = 'var(--success)';
+        showToast('Conexión con Google Sheets OK ✓');
+      } else {
+        status.textContent = '✗ Error';
+        status.style.color = 'var(--error)';
+        showToast('No se pudo conectar — revisa la URL', true);
+      }
+      setTimeout(() => { status.style.display = 'none'; }, 4000);
+    }
+
+    // Envía una fila al Apps Script (no-cors: no leemos respuesta pero llega)
+    async function sendToSheets(url, data) {
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(data),
+        });
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // Load saved config on boot
+    window.addEventListener('DOMContentLoaded', () => {
+      const cfg = getConfig();
+      if (cfg.domain)    document.getElementById('domain-input').value = cfg.domain;
+      if (cfg.sheetsUrl) document.getElementById('sheets-input').value = cfg.sheetsUrl;
+    });
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      btn.classList.add('active');
+      if (tab !== 'escanear') stopScanner();
+    }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.classList.remove('show'); }, 3000);
+    }
+
+    /* ── QR Generator ────────────────────────────────────────── */
+    let qrInstance = null;
+    let currentEquipo = null;
+
+    const CATEGORIAS_LABEL = {
+      camaras: 'Cámaras', lentes: 'Lentes', tripodes: 'Soporte / Trípodes',
+      iluminacion: 'Iluminación', audio: 'Audio', drones: 'Drones',
+      monitores: 'Monitores', grip: 'Grip', steadicam: 'Steadicam',
+      sliders: 'Sliders', otro: 'Otro',
+    };
+
+    function validate() {
+      let ok = true;
+      const fields = [
+        { id: 'f-nombre', errId: 'e-nombre', msg: 'Campo requerido' },
+        { id: 'f-cat',    errId: 'e-cat',    msg: 'Selecciona una categoría' },
+        { id: 'f-serie',  errId: 'e-serie',  msg: 'Campo requerido' },
+      ];
+      fields.forEach(({ id, errId, msg }) => {
+        const el = document.getElementById(id);
+        const err = document.getElementById(errId);
+        if (!el.value.trim()) {
+          el.classList.add('error');
+          err.style.display = 'block';
+          ok = false;
+        } else {
+          el.classList.remove('error');
+          err.style.display = 'none';
+        }
+      });
+      return ok;
+    }
+
+    function getFormData() {
+      return {
+        nombre: document.getElementById('f-nombre').value.trim(),
+        cat:    document.getElementById('f-cat').value,
+        serie:  document.getElementById('f-serie').value.trim(),
+        specs:  document.getElementById('f-specs').value.trim(),
+        desc:   document.getElementById('f-desc').value.trim(),
+      };
+    }
+
+    function buildQRUrl(data) {
+      const cfg = getConfig();
+      const domain = cfg.domain || 'https://lamadriguera.co';
+      const params = new URLSearchParams({
+        id:   data.serie,
+        n:    data.nombre,
+        c:    data.cat,
+        sp:   data.specs,
+        desc: data.desc,
+      });
+      // Remove empty params
+      [...params.entries()].forEach(([k, v]) => { if (!v) params.delete(k); });
+      return `${domain}/equipo?${params.toString()}`;
+    }
+
+    function generateQR() {
+      if (!validate()) return;
+
+      const data = getFormData();
+      currentEquipo = data;
+      const url = buildQRUrl(data);
+
+      // Clear previous QR
+      const canvas = document.getElementById('qr-canvas');
+      canvas.innerHTML = '';
+      if (qrInstance) { try { qrInstance.clear(); } catch (_) {} }
+
+      qrInstance = new QRCode(canvas, {
+        text: url,
+        width: 260,
+        height: 260,
+        colorDark:  '#0c0e09',
+        colorLight: '#f2f2ed',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+
+      renderHojaCard(data);
+
+      document.getElementById('preview-empty').style.display = 'none';
+      const content = document.getElementById('preview-content');
+      content.style.display = 'flex';
+
+      // Sync to Google Sheets if configured
+      const sheetsUrl = getConfig().sheetsUrl;
+      if (sheetsUrl) {
+        showToast('QR generado — sincronizando con Sheets…');
+        sendToSheets(sheetsUrl, {
+          fecha:  new Date().toLocaleString('es-CO'),
+          serie:  data.serie,
+          nombre: data.nombre,
+          cat:    CATEGORIAS_LABEL[data.cat] || data.cat,
+          specs:  data.specs,
+          desc:   data.desc,
+          url,
+        }).then(ok => {
+          showToast(ok ? 'QR generado y guardado en Sheets ✓' : 'QR generado (Sheets no disponible)');
+        });
+      } else {
+        showToast('QR generado correctamente');
+      }
+    }
+
+    function renderHojaCard(data) {
+      const specs = data.specs
+        ? data.specs.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+      const catLabel = CATEGORIAS_LABEL[data.cat] || data.cat;
+      const fecha = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+
+      document.getElementById('hoja-card').innerHTML = `
+        <p class="hoja-card-cat">${catLabel}</p>
+        <p class="hoja-card-nombre">${esc(data.nombre)}</p>
+        <div class="hoja-card-row">
+          <span class="hoja-card-row-label">N° de serie</span>
+          <span class="hoja-card-row-value">${esc(data.serie)}</span>
+        </div>
+        ${data.desc ? `<div class="hoja-card-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+          <span class="hoja-card-row-label">Descripción</span>
+          <span class="hoja-card-row-value" style="line-height:1.5;font-size:12px;color:var(--muted);">${esc(data.desc)}</span>
+        </div>` : ''}
+        <div class="hoja-card-row">
+          <span class="hoja-card-row-label">Generado</span>
+          <span class="hoja-card-row-value" style="font-size:11px;color:var(--muted);">${fecha}</span>
+        </div>
+        ${specs.length ? `<div class="specs-chips">${specs.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>` : ''}
+      `;
+    }
+
+    function downloadQR() {
+      // html5-qrcode renders a canvas or img — grab whichever is present
+      const canvas = document.querySelector('#qr-canvas canvas');
+      const img    = document.querySelector('#qr-canvas img');
+
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = `QR-${(currentEquipo?.serie || 'equipo').replace(/\s/g, '-')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } else if (img) {
+        const link = document.createElement('a');
+        link.download = `QR-${(currentEquipo?.serie || 'equipo').replace(/\s/g, '-')}.png`;
+        link.href = img.src;
+        link.click();
+      } else {
+        showToast('Genera el QR primero', true);
+      }
+    }
+
+    function printQR() {
+      if (!currentEquipo) { showToast('Genera el QR primero', true); return; }
+
+      const canvas = document.querySelector('#qr-canvas canvas');
+      const img    = document.querySelector('#qr-canvas img');
+      const src    = canvas ? canvas.toDataURL('image/png') : img?.src;
+      if (!src) { showToast('Genera el QR primero', true); return; }
+
+      const data    = currentEquipo;
+      const specs   = data.specs ? data.specs.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const catLabel = CATEGORIAS_LABEL[data.cat] || data.cat;
+      const fecha    = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+
+      const w = window.open('', '_blank');
+      w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #111; margin: 0; padding: 32px; }
+          .wrap { max-width: 360px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 28px; }
+          .brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 20px; }
+          .nombre { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+          .cat { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #777; margin-bottom: 16px; }
+          .qr-img { width: 200px; height: 200px; margin: 0 auto 20px; display: block; border: 6px solid #fff; outline: 1px solid #eee; }
+          .row { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid #f0f0f0; font-size: 12px; }
+          .row-label { color: #888; }
+          .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+          .chip { padding: 3px 8px; background: #f5f5f5; border: 1px solid #e5e5e5; font-size: 10px; color: #666; }
+          .accent-bar { width: 32px; height: 2px; background: #c5e829; margin-bottom: 20px; }
+        </style>
+      </head><body>
+        <div class="wrap">
+          <p class="brand">La Madriguera Rental House</p>
+          <div class="accent-bar"></div>
+          <img src="${src}" class="qr-img" alt="QR ${esc(data.nombre)}" />
+          <p class="nombre">${esc(data.nombre)}</p>
+          <p class="cat">${catLabel}</p>
+          <div class="row"><span class="row-label">N° de serie</span><span>${esc(data.serie)}</span></div>
+          ${data.desc ? `<div class="row"><span class="row-label">Descripción</span><span style="text-align:right;max-width:60%;font-size:11px;color:#666;">${esc(data.desc)}</span></div>` : ''}
+          <div class="row"><span class="row-label">Generado</span><span style="color:#aaa;font-size:11px;">${fecha}</span></div>
+          ${specs.length ? `<div class="chips">${specs.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>` : ''}
+        </div>
+      </body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 400);
+    }
+
+    /* ── QR Scanner ──────────────────────────────────────────── */
+    let html5Scanner = null;
+    let scannerRunning = false;
+
+    async function startScanner() {
+      const idleEl = document.getElementById('scanner-idle');
+
+      // Show loading state while waiting for browser permission dialog
+      idleEl.innerHTML = `
+        <div class="scanner-idle-icon" style="opacity:0.25;font-size:40px;margin-bottom:12px;">⏳</div>
+        <p class="scanner-idle-text">SOLICITANDO ACCESO…</p>
+        <p class="scanner-idle-sub">Acepta el permiso de cámara en el navegador</p>`;
+
+      try {
+        // getCameras() triggers the camera permission request and lists real devices
+        const cameras = await Html5Qrcode.getCameras();
+
+        if (!cameras || cameras.length === 0) {
+          resetScanner();
+          showToast('No se encontró ninguna cámara en este dispositivo', true);
+          return;
+        }
+
+        // Prefer rear/back camera (mobile); fall back to any available camera
+        const camera = cameras.find(c => /back|rear|environment/i.test(c.label))
+                    || cameras[cameras.length - 1];
+
+        // UI: transition to scanning state only after permission is granted
+        idleEl.style.display = 'none';
+        document.getElementById('scanner-overlay').style.display = 'flex';
+        document.getElementById('btn-start').style.display = 'none';
+        document.getElementById('btn-stop').style.display  = 'inline-block';
+
+        html5Scanner = new Html5Qrcode('reader');
+        await html5Scanner.start(
+          camera.id,
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          onScanSuccess,
+          () => {}  // per-frame QR-not-found errors — ignore silently
+        );
+        scannerRunning = true;
+
+      } catch (err) {
+        resetScanner();
+        const msg = String(err.message || err);
+        if (/denied|not allowed|permission/i.test(msg)) {
+          showToast('Permiso denegado — habilita la cámara en la configuración del navegador', true);
+        } else if (/not found|no device|requested device/i.test(msg)) {
+          showToast('No se encontró ninguna cámara disponible', true);
+        } else {
+          showToast('No se pudo iniciar la cámara', true);
+          console.error('[QR Camera]', err);
+        }
+      }
+    }
+
+    function stopScanner() {
+      if (html5Scanner && scannerRunning) {
+        html5Scanner.stop().catch(() => {});
+        scannerRunning = false;
+      }
+      html5Scanner = null;
+      resetScanner();
+    }
+
+    function resetScanner() {
+      const idleEl = document.getElementById('scanner-idle');
+      idleEl.innerHTML = `
+        <div class="scanner-idle-icon">📷</div>
+        <p class="scanner-idle-text">CÁMARA LISTA</p>
+        <p class="scanner-idle-sub">Pulsa el botón para iniciar el escaneo</p>`;
+      idleEl.style.display = 'flex';
+      document.getElementById('scanner-overlay').style.display = 'none';
+      document.getElementById('btn-start').style.display = 'inline-block';
+      document.getElementById('btn-stop').style.display  = 'none';
+      document.getElementById('reader').innerHTML = '';
+    }
+
+    /* ── Mode switcher ───────────────────────────────────────── */
+    let currentMode = 'camera';
+
+    function setMode(mode) {
+      stopScanner();
+      currentMode = mode;
+      document.getElementById('panel-camera').style.display = mode === 'camera' ? 'block' : 'none';
+      document.getElementById('panel-file').style.display   = mode === 'file'   ? 'block' : 'none';
+      document.getElementById('scan-result').style.display  = 'none';
+
+      const btnCam  = document.getElementById('mode-camera');
+      const btnFile = document.getElementById('mode-file');
+      if (mode === 'camera') {
+        btnCam.style.background  = 'var(--accent)';
+        btnCam.style.color       = '#0c0e09';
+        btnCam.style.border      = 'none';
+        btnFile.style.background = 'var(--bg3)';
+        btnFile.style.color      = 'var(--muted)';
+        btnFile.style.border     = '1px solid var(--border)';
+      } else {
+        btnFile.style.background = 'var(--accent)';
+        btnFile.style.color      = '#0c0e09';
+        btnFile.style.border     = 'none';
+        btnCam.style.background  = 'var(--bg3)';
+        btnCam.style.color       = 'var(--muted)';
+        btnCam.style.border      = '1px solid var(--border)';
+      }
+    }
+
+    /* ── File scanner ────────────────────────────────────────── */
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) scanImageFile(file);
+      event.target.value = '';
+    }
+
+    function handleFileDrop(event) {
+      event.preventDefault();
+      document.getElementById('file-drop-zone').style.borderColor = 'rgba(255,255,255,0.12)';
+      const file = event.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        scanImageFile(file);
+      } else {
+        showToast('Solo se aceptan imágenes', true);
+      }
+    }
+
+    function scanImageFile(file) {
+      const zone = document.getElementById('file-drop-zone');
+      zone.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-size:13px;">Analizando imagen…</div>';
+
+      const scanner = new Html5Qrcode('__file_scanner_tmp');
+      scanner.scanFile(file, true)
+        .then(decoded => {
+          // Restore drop zone
+          restoreDropZone();
+          parseScannedQR(decoded);
+        })
+        .catch(() => {
+          restoreDropZone();
+          showToast('No se encontró ningún QR en la imagen', true);
+        });
+    }
+
+    function restoreDropZone() {
+      const zone = document.getElementById('file-drop-zone');
+      zone.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:44px;opacity:0.2;margin-bottom:14px;">🖼</div>
+          <p style="font-family:var(--font-display);font-size:24px;color:rgba(255,255,255,0.25);letter-spacing:0.05em;margin-bottom:8px;">ARRASTRA O PULSA</p>
+          <p style="font-size:12px;color:var(--muted);">Sube una foto o captura del QR</p>
+          <p style="font-size:11px;color:rgba(122,122,114,0.5);margin-top:6px;">PNG, JPG, WEBP</p>
+        </div>`;
+    }
+
+    function onScanSuccess(decodedText) {
+      stopScanner();
+      parseScannedQR(decodedText);
+    }
+
+    function parseScannedQR(text) {
+      let data = null;
+      let source = 'offline';
+      let rawUrl = null;
+
+      try {
+        const url = new URL(text);
+        rawUrl = text;
+        const p = url.searchParams;
+        data = {
+          nombre: p.get('n') || '',
+          cat:    p.get('c') || '',
+          serie:  p.get('id') || '',
+          specs:  p.get('sp') || '',
+          desc:   p.get('desc') || '',
+          url:    text,
+        };
+      } catch (_) {
+        // Not a URL — show raw text
+        renderScanResult(null, text, 'raw');
+        return;
+      }
+
+      renderScanResult(data, rawUrl, source);
+
+      // Try to fetch from VPS for enriched data
+      const cfg = getConfig();
+      const domain = cfg.domain;
+      if (domain && data.serie) {
+        const apiUrl = `${domain}/api/equipo/${encodeURIComponent(data.serie)}`;
+        fetch(apiUrl, { signal: AbortSignal.timeout(5000) })
+          .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+          .then(remote => {
+            const merged = { ...data, ...remote };
+            renderScanResult(merged, rawUrl, 'online');
+          })
+          .catch(() => {/* silently stay offline */});
+      }
+    }
+
+    function renderScanResult(data, rawText, source) {
+      const el = document.getElementById('scan-result');
+      el.style.display = 'block';
+
+      if (source === 'raw' || !data) {
+        el.innerHTML = `
+          <div class="scan-result">
+            <div class="scan-result-header">
+              <div class="scan-result-dot" style="background:var(--muted)"></div>
+              <span class="scan-result-title">QR detectado — contenido no reconocido</span>
+            </div>
+            <p style="font-size:13px;color:var(--muted);word-break:break-all;line-height:1.6;">${esc(rawText)}</p>
+          </div>`;
+        return;
+      }
+
+      const catLabel = CATEGORIAS_LABEL[data.cat] || data.cat || '—';
+      const specs = data.specs ? data.specs.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const sourceBadge = source === 'online'
+        ? '<span class="scan-result-source source-online">Servidor</span>'
+        : '<span class="scan-result-source source-offline">Datos del QR</span>';
+
+      el.innerHTML = `
+        <div class="scan-result">
+          <div class="scan-result-header">
+            <div class="scan-result-dot"></div>
+            <span class="scan-result-title">Equipo detectado</span>
+            ${sourceBadge}
+          </div>
+          <div class="hoja-card" style="margin-bottom:0">
+            <p class="hoja-card-cat">${catLabel}</p>
+            <p class="hoja-card-nombre">${esc(data.nombre || '—')}</p>
+            ${data.serie ? `<div class="hoja-card-row">
+              <span class="hoja-card-row-label">N° de serie</span>
+              <span class="hoja-card-row-value">${esc(data.serie)}</span>
+            </div>` : ''}
+            ${data.desc ? `<div class="hoja-card-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="hoja-card-row-label">Descripción</span>
+              <span class="hoja-card-row-value" style="line-height:1.5;font-size:12px;color:var(--muted);">${esc(data.desc)}</span>
+            </div>` : ''}
+            ${specs.length ? `<div class="specs-chips">${specs.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>` : ''}
+          </div>
+          ${data.url ? `<button class="scan-verify-btn" onclick="window.open('${esc(data.url)}','_blank')">Ver en el servidor →</button>` : ''}
+        </div>`;
+    }
+
+    /* ── Utils ───────────────────────────────────────────────── */
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Clear error state on input
+    document.addEventListener('DOMContentLoaded', () => {
+      ['f-nombre','f-cat','f-serie'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          document.getElementById(id).classList.remove('error');
+          const errId = 'e-' + id.replace('f-', '');
+          const errEl = document.getElementById(errId);
+          if (errEl) errEl.style.display = 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>
