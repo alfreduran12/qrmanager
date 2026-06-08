@@ -488,40 +488,76 @@
     .scan-verify-btn:hover { background: rgba(197,232,41,0.14); }
 
     /* ── Inventario ── */
-    .inv-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; }
-    .inv-count  { font-size:12px; color:var(--muted); padding-bottom:6px; }
+    .inv-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .inv-count {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 6px;
+    }
+    .inv-search-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .inv-search-wrap input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 2px solid rgba(197,232,41,0.3);
+      padding: 12px 16px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .inv-search-wrap input:focus { border-color: rgba(197,232,41,0.5); }
+    .inv-search-wrap input::placeholder { color: var(--muted); }
 
+    /* Card */
     .equipo-card {
       background: var(--bg2);
       border: 1px solid var(--border);
-      margin-bottom: 8px;
+      border-left: 2px solid rgba(255,255,255,0.06);
+      margin-bottom: 6px;
       transition: border-color 0.2s;
     }
-    .equipo-card:hover { border-color: rgba(255,255,255,0.15); }
+    .equipo-card:hover { border-color: rgba(255,255,255,0.14); border-left-color: rgba(197,232,41,0.35); }
 
     .equipo-card-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 20px;
+      padding: 18px 20px;
       gap: 16px;
       flex-wrap: wrap;
     }
-    .equipo-info { min-width: 0; }
+
+    /* Info izquierda */
+    .equipo-info { min-width: 0; flex: 1; }
     .equipo-serie {
       font-family: var(--font-display);
-      font-size: 20px;
-      letter-spacing: 0.05em;
+      font-size: 22px;
+      letter-spacing: 0.06em;
       color: var(--accent);
       display: block;
       line-height: 1;
     }
     .equipo-nombre {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       color: var(--white);
       display: block;
       margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .equipo-cat {
       font-size: 10px;
@@ -529,52 +565,101 @@
       text-transform: uppercase;
       color: var(--muted);
       display: block;
-      margin-top: 3px;
+      margin-top: 4px;
     }
-    .equipo-btns { display:flex; gap:6px; align-items:center; flex-wrap:wrap; flex-shrink:0; }
 
+    /* Acciones derecha */
+    .equipo-btns {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
     .equipo-btn {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--muted);
       font-family: var(--font-body);
       font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      padding: 7px 12px;
+      padding: 8px 14px;
       cursor: pointer;
       transition: all 0.15s;
     }
-    .equipo-btn:hover          { border-color: rgba(255,255,255,0.2); color: var(--white); }
-    .equipo-btn.edit:hover     { border-color: var(--accent); color: var(--accent); }
-    .equipo-btn.del:hover      { border-color: var(--error);  color: var(--error); }
+    .equipo-btn:hover      { border-color: rgba(255,255,255,0.22); color: var(--white); }
+    .equipo-btn.edit:hover { border-color: var(--accent); color: var(--accent); background: rgba(197,232,41,0.06); }
+    .equipo-btn.del:hover  { border-color: var(--error);  color: var(--error);  background: rgba(248,113,113,0.06); }
 
     .disp-badge {
       font-size: 10px;
+      font-weight: 600;
       letter-spacing: 0.1em;
-      padding: 5px 10px;
+      text-transform: uppercase;
+      padding: 7px 12px;
       cursor: pointer;
       border: 1px solid;
-      transition: all 0.15s;
+      transition: opacity 0.15s;
       user-select: none;
+      white-space: nowrap;
     }
-    .disp-on  { color:var(--success); border-color:rgba(74,222,128,0.3); background:rgba(74,222,128,0.07); }
-    .disp-off { color:var(--error);   border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.07); }
-    .disp-badge:hover { opacity: 0.75; }
+    .disp-badge:hover { opacity: 0.7; }
+    .disp-on  { color: var(--success); border-color: rgba(74,222,128,0.35);  background: rgba(74,222,128,0.08); }
+    .disp-off { color: var(--error);   border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.08); }
 
-    .equipo-specs-row { padding: 0 20px 14px; display:flex; flex-wrap:wrap; gap:6px; }
+    .equipo-specs-row {
+      padding: 0 20px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
 
+    /* Panel de edición */
     .equipo-edit-panel {
       border-top: 1px solid var(--border);
-      padding: 20px;
+      padding: 24px;
       background: var(--bg3);
     }
+    .equipo-edit-panel .ep-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .equipo-edit-panel .ep-full { grid-column: 1 / -1; }
+    .equipo-edit-panel .ep-field { display: flex; flex-direction: column; gap: 6px; }
+    .equipo-edit-panel .ep-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .equipo-edit-panel .ep-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .equipo-edit-panel .ep-input:focus { border-color: rgba(197,232,41,0.45); }
+    .equipo-edit-panel .ep-input::placeholder { color: var(--muted); }
+    .equipo-edit-panel textarea.ep-input { resize: vertical; min-height: 72px; }
+    .equipo-edit-panel select.ep-input option { background: var(--bg3); }
+    .ep-actions { display: flex; gap: 8px; }
+    .ep-actions .btn-primary  { flex: 1; }
 
-    .inv-empty { text-align:center; padding:60px 20px; }
-    .inv-empty-icon { font-size:40px; opacity:0.2; margin-bottom:16px; }
-    .inv-empty-title { font-family:var(--font-display); font-size:24px; color:rgba(255,255,255,0.15); margin-bottom:8px; }
-    .inv-empty-sub   { font-size:13px; color:var(--muted); }
+    /* Empty state */
+    .inv-empty { text-align: center; padding: 64px 20px; }
+    .inv-empty-icon  { font-size: 40px; opacity: 0.15; margin-bottom: 18px; }
+    .inv-empty-title { font-family: var(--font-display); font-size: 26px; color: rgba(255,255,255,0.12); letter-spacing: 0.05em; margin-bottom: 8px; }
+    .inv-empty-sub   { font-size: 13px; color: var(--muted); }
 
     /* ── Toast ── */
     .toast {
@@ -815,10 +900,10 @@
           <span id="inv-count" class="inv-count"></span>
         </div>
 
-        <div style="margin-bottom:20px;">
-          <input id="inv-search" type="text" class="form-input"
+        <div class="inv-search-wrap">
+          <input id="inv-search" type="text"
                  placeholder="Buscar por nombre, serie o categoría…"
-                 oninput="filterInventario()" style="width:100%;" />
+                 oninput="filterInventario()" />
         </div>
 
         <div id="inv-list"></div>
@@ -1613,28 +1698,28 @@
           </div>
           ${specs.length ? `<div class="equipo-specs-row">${specs.map(s=>`<span class="spec-chip">${esc(s)}</span>`).join('')}</div>` : ''}
           <div class="equipo-edit-panel" id="ep-${sid}" style="display:none;">
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Nombre</label>
-                <input id="ep-n-${sid}" class="form-input" type="text" value="${esc(e.nombre)}" />
+            <div class="ep-grid">
+              <div class="ep-field">
+                <label class="ep-label">Nombre</label>
+                <input id="ep-n-${sid}" class="ep-input" type="text" value="${esc(e.nombre)}" placeholder="Nombre del equipo" />
               </div>
-              <div class="form-group">
-                <label class="form-label">Categoría</label>
-                <select id="ep-c-${sid}" class="form-input">
+              <div class="ep-field">
+                <label class="ep-label">Categoría</label>
+                <select id="ep-c-${sid}" class="ep-input">
                   ${CATS.map(c=>`<option value="${c}"${e.cat===c?' selected':''}>${CATEGORIAS_LABEL[c]}</option>`).join('')}
                 </select>
               </div>
-              <div class="form-group" style="grid-column:1/-1;">
-                <label class="form-label">Specs <span style="color:var(--muted);font-size:11px;">(separadas por coma)</span></label>
-                <input id="ep-s-${sid}" class="form-input" type="text" value="${esc(e.specs||'')}" />
+              <div class="ep-field ep-full">
+                <label class="ep-label">Specs <span style="color:rgba(122,122,114,0.6);font-size:10px;text-transform:none;letter-spacing:0">(separadas por coma)</span></label>
+                <input id="ep-s-${sid}" class="ep-input" type="text" value="${esc(e.specs||'')}" placeholder="ej. Full Frame, 45MP, IBIS" />
               </div>
-              <div class="form-group" style="grid-column:1/-1;">
-                <label class="form-label">Descripción</label>
-                <textarea id="ep-d-${sid}" class="form-input" rows="2" style="resize:vertical;">${esc(e.desc||'')}</textarea>
+              <div class="ep-field ep-full">
+                <label class="ep-label">Descripción</label>
+                <textarea id="ep-d-${sid}" class="ep-input" placeholder="Notas adicionales sobre el equipo…">${esc(e.desc||'')}</textarea>
               </div>
             </div>
-            <div style="display:flex;gap:8px;margin-top:16px;">
-              <button class="btn-primary" style="flex:1;" onclick="saveEquipo('${esc(e.serie)}')">Guardar cambios</button>
+            <div class="ep-actions">
+              <button class="btn-primary" onclick="saveEquipo('${esc(e.serie)}')">Guardar cambios</button>
               <button class="btn-secondary" onclick="toggleEditPanel('${esc(e.serie)}')">Cancelar</button>
             </div>
           </div>
