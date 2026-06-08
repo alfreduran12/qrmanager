@@ -728,26 +728,53 @@
     /* ── Config ──────────────────────────────────────────────── */
     const CONFIG_KEY = 'lm_qr_config';
 
+    // localStorage como caché local
     function getConfig() {
       try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); }
       catch { return {}; }
     }
-
-    function saveConfig(data) {
+    function saveLocalConfig(data) {
       localStorage.setItem(CONFIG_KEY, JSON.stringify({ ...getConfig(), ...data }));
     }
 
-    function saveDomain() {
+    // Carga config desde el servidor (fuente de verdad) y sincroniza al localStorage
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config', { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          const serverCfg = await res.json();
+          saveLocalConfig(serverCfg);          // actualiza caché local
+        }
+      } catch (_) { /* sin conexión — usa localStorage */ }
+
+      const cfg = getConfig();
+      if (cfg.domain)    document.getElementById('domain-input').value = cfg.domain;
+      if (cfg.sheetsUrl) document.getElementById('sheets-input').value = cfg.sheetsUrl;
+    }
+
+    async function saveDomain() {
       const val = document.getElementById('domain-input').value.trim().replace(/\/$/, '');
-      saveConfig({ domain: val });
+      saveLocalConfig({ domain: val });
+      try {
+        await fetch('/api/config', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: val }),
+        });
+      } catch (_) {}
       const status = document.getElementById('domain-status');
       status.style.display = 'inline';
       setTimeout(() => { status.style.display = 'none'; }, 2000);
     }
 
-    function saveSheets() {
+    async function saveSheets() {
       const val = document.getElementById('sheets-input').value.trim();
-      saveConfig({ sheetsUrl: val });
+      saveLocalConfig({ sheetsUrl: val });
+      try {
+        await fetch('/api/config', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sheetsUrl: val }),
+        });
+      } catch (_) {}
       const status = document.getElementById('sheets-status');
       status.textContent = '✓ Guardado';
       status.style.color = 'var(--success)';
@@ -799,13 +826,6 @@
       }
     }
 
-    // Load saved config on boot
-    window.addEventListener('DOMContentLoaded', () => {
-      const cfg = getConfig();
-      if (cfg.domain)    document.getElementById('domain-input').value = cfg.domain;
-      if (cfg.sheetsUrl) document.getElementById('sheets-input').value = cfg.sheetsUrl;
-    });
-
     /* ── Tabs ────────────────────────────────────────────────── */
     function switchTab(tab, btn) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -827,6 +847,83 @@
     /* ── QR Generator ────────────────────────────────────────── */
     let qrInstance = null;
     let currentEquipo = null;
+
+    /* ── Logo preload ────────────────────────────────────────── */
+    let logoImg = new Image();
+    logoImg.src = '/logo.png';   // servido por el backend como estático
+
+    /* ── QR compuesto (canvas con SKU + nombre + logo) ───────── */
+    let composedQRDataUrl = null;
+
+    async function composeQRCanvas(data) {
+      await new Promise(r => setTimeout(r, 80));   // espera render de qrcodejs
+
+      const rawQR = document.querySelector('#qr-canvas canvas');
+      if (!rawQR) return;
+
+      const qrSize = 260;
+      const pad    = 20;
+      const labelH = 62;                           // espacio para texto debajo
+      const W = qrSize + pad * 2;                  // 300
+      const H = qrSize + pad * 2 + labelH;         // 362
+
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      // Fondo claro
+      ctx.fillStyle = '#f2f2ed';
+      ctx.fillRect(0, 0, W, H);
+
+      // QR
+      ctx.drawImage(rawQR, pad, pad, qrSize, qrSize);
+
+      // Logo centrado sobre el QR (solo si cargó)
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        const logoSize = 54;
+        const lx = pad + (qrSize - logoSize) / 2;
+        const ly = pad + (qrSize - logoSize) / 2;
+        // fondo blanco detrás del logo
+        ctx.fillStyle = '#f2f2ed';
+        ctx.fillRect(lx - 7, ly - 7, logoSize + 14, logoSize + 14);
+        ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+      }
+
+      // Línea separadora
+      const textY = pad + qrSize + pad;
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad, textY - 4);
+      ctx.lineTo(W - pad, textY - 4);
+      ctx.stroke();
+
+      // SKU / serie
+      ctx.font = '700 13px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.fillStyle = '#0c0e09';
+      ctx.textAlign = 'center';
+      ctx.fillText(data.serie, W / 2, textY + 14);
+
+      // Nombre (truncado si es muy largo)
+      const nameText = data.nombre.length > 32
+        ? data.nombre.slice(0, 29) + '…'
+        : data.nombre;
+      ctx.font = '400 11px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.fillStyle = '#5a5a52';
+      ctx.fillText(nameText, W / 2, textY + 32);
+
+      // Marca pequeña
+      ctx.font = '600 9px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.fillStyle = '#c5e829';
+      ctx.letterSpacing = '0.1em';
+      ctx.fillText('LA MADRIGUERA', W / 2, textY + 52);
+
+      composedQRDataUrl = c.toDataURL('image/png');
+
+      // Reemplaza el canvas crudo con la imagen compuesta en el preview
+      document.getElementById('qr-canvas').innerHTML =
+        `<img src="${composedQRDataUrl}" style="width:260px;height:auto;display:block;" />`;
+    }
 
     const CATEGORIAS_LABEL = {
       camaras: 'Cámaras', lentes: 'Lentes', tripodes: 'Soporte / Trípodes',
@@ -882,11 +979,12 @@
       return `${domain}/equipo?${params.toString()}`;
     }
 
-    function generateQR() {
+    async function generateQR() {
       if (!validate()) return;
 
       const data = getFormData();
       currentEquipo = data;
+      composedQRDataUrl = null;
       const url = buildQRUrl(data);
 
       // Clear previous QR
@@ -894,13 +992,14 @@
       canvas.innerHTML = '';
       if (qrInstance) { try { qrInstance.clear(); } catch (_) {} }
 
+      // Nivel H (30% de corrección) para que el logo no rompa la lectura
       qrInstance = new QRCode(canvas, {
         text: url,
         width: 260,
         height: 260,
         colorDark:  '#0c0e09',
         colorLight: '#f2f2ed',
-        correctLevel: QRCode.CorrectLevel.M,
+        correctLevel: QRCode.CorrectLevel.H,
       });
 
       renderHojaCard(data);
@@ -909,7 +1008,10 @@
       const content = document.getElementById('preview-content');
       content.style.display = 'flex';
 
-      // Sync to Google Sheets if configured
+      // Compone el QR con SKU + nombre + logo
+      await composeQRCanvas(data);
+
+      // Sync to Google Sheets si está configurado
       const sheetsUrl = getConfig().sheetsUrl;
       if (sheetsUrl) {
         showToast('QR generado — sincronizando con Sheets…');
@@ -921,6 +1023,7 @@
           specs:  data.specs,
           desc:   data.desc,
           url,
+          qrImgUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`,
         }).then(ok => {
           showToast(ok ? 'QR generado y guardado en Sheets ✓' : 'QR generado (Sheets no disponible)');
         });
@@ -956,31 +1059,24 @@
     }
 
     function downloadQR() {
-      // html5-qrcode renders a canvas or img — grab whichever is present
-      const canvas = document.querySelector('#qr-canvas canvas');
-      const img    = document.querySelector('#qr-canvas img');
+      const src = composedQRDataUrl
+        || document.querySelector('#qr-canvas canvas')?.toDataURL('image/png')
+        || document.querySelector('#qr-canvas img')?.src;
 
-      if (canvas) {
-        const link = document.createElement('a');
-        link.download = `QR-${(currentEquipo?.serie || 'equipo').replace(/\s/g, '-')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      } else if (img) {
-        const link = document.createElement('a');
-        link.download = `QR-${(currentEquipo?.serie || 'equipo').replace(/\s/g, '-')}.png`;
-        link.href = img.src;
-        link.click();
-      } else {
-        showToast('Genera el QR primero', true);
-      }
+      if (!src) { showToast('Genera el QR primero', true); return; }
+
+      const link = document.createElement('a');
+      link.download = `QR-${(currentEquipo?.serie || 'equipo').replace(/\s+/g, '-')}.png`;
+      link.href = src;
+      link.click();
     }
 
     function printQR() {
       if (!currentEquipo) { showToast('Genera el QR primero', true); return; }
 
-      const canvas = document.querySelector('#qr-canvas canvas');
-      const img    = document.querySelector('#qr-canvas img');
-      const src    = canvas ? canvas.toDataURL('image/png') : img?.src;
+      const src = composedQRDataUrl
+        || document.querySelector('#qr-canvas canvas')?.toDataURL('image/png')
+        || document.querySelector('#qr-canvas img')?.src;
       if (!src) { showToast('Genera el QR primero', true); return; }
 
       const data    = currentEquipo;
@@ -1022,8 +1118,37 @@
     }
 
     /* ── QR Scanner ──────────────────────────────────────────── */
-    let html5Scanner = null;
+    let html5Scanner  = null;
     let scannerRunning = false;
+    let lastScannedData = null;
+
+    async function sendLastScannedToSheets(btn) {
+      const cfg = getConfig();
+      if (!cfg.sheetsUrl) {
+        showToast('Configura la URL de Google Sheets primero', true); return;
+      }
+      if (!lastScannedData) return;
+
+      btn.textContent = '…';
+      btn.disabled = true;
+
+      const ok = await sendToSheets(cfg.sheetsUrl, {
+        fecha:     new Date().toLocaleString('es-CO'),
+        serie:     lastScannedData.serie  || '',
+        nombre:    lastScannedData.nombre || '',
+        cat:       CATEGORIAS_LABEL[lastScannedData.cat] || lastScannedData.cat || '',
+        specs:     lastScannedData.specs  || '',
+        desc:      lastScannedData.desc   || '',
+        url:       lastScannedData.url    || '',
+        qrImgUrl:  lastScannedData.url
+          ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(lastScannedData.url)}`
+          : '',
+      });
+
+      btn.textContent = ok ? '✓ Guardado en Sheets' : '✗ Error';
+      btn.disabled = false;
+      showToast(ok ? 'Guardado en Google Sheets ✓' : 'No se pudo guardar en Sheets', !ok);
+    }
 
     async function startScanner() {
       const idleEl = document.getElementById('scanner-idle');
@@ -1202,6 +1327,7 @@
         return;
       }
 
+      lastScannedData = { ...data, url: rawUrl };
       renderScanResult(data, rawUrl, source);
 
       // Try to fetch from VPS for enriched data
@@ -1261,7 +1387,10 @@
             </div>` : ''}
             ${specs.length ? `<div class="specs-chips">${specs.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>` : ''}
           </div>
-          ${data.url ? `<button class="scan-verify-btn" onclick="window.open('${esc(data.url)}','_blank')">Ver en el servidor →</button>` : ''}
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            ${data.url ? `<button class="scan-verify-btn" onclick="window.open('${esc(data.url)}','_blank')">Ver en servidor →</button>` : ''}
+            <button class="scan-verify-btn" style="background:rgba(197,232,41,0.12);color:var(--accent);border-color:rgba(197,232,41,0.25);" onclick="sendLastScannedToSheets(this)">Guardar en Sheets</button>
+          </div>
         </div>`;
     }
 
@@ -1272,13 +1401,15 @@
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Clear error state on input
     document.addEventListener('DOMContentLoaded', () => {
+      // Carga config desde el servidor (persistente entre dispositivos)
+      loadConfig();
+
+      // Limpia errores de validación al escribir
       ['f-nombre','f-cat','f-serie'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
           document.getElementById(id).classList.remove('error');
-          const errId = 'e-' + id.replace('f-', '');
-          const errEl = document.getElementById(errId);
+          const errEl = document.getElementById('e-' + id.replace('f-', ''));
           if (errEl) errEl.style.display = 'none';
         });
       });

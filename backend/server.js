@@ -18,6 +18,13 @@ app.use(express.static(path.join(__dirname, '..')));
 const db = new DatabaseSync(DB_PATH);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS config (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT ''
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS equipos (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     serie       TEXT    UNIQUE NOT NULL,
@@ -36,6 +43,25 @@ function equipoRow(row) {
   if (!row) return null;
   return { ...row, disponible: row.disponible === 1 };
 }
+
+// ── Config ────────────────────────────────────────────────────
+
+// GET /api/config — devuelve domain y sheetsUrl guardados
+app.get('/api/config', (_req, res) => {
+  const rows = db.prepare('SELECT key, value FROM config').all();
+  const cfg = {};
+  rows.forEach(r => { cfg[r.key] = r.value; });
+  res.json(cfg);
+});
+
+// POST /api/config — guarda domain y/o sheetsUrl
+app.post('/api/config', (req, res) => {
+  const { domain, sheetsUrl } = req.body;
+  const stmt = db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)');
+  if (domain    !== undefined) stmt.run('domain',    domain    ?? '');
+  if (sheetsUrl !== undefined) stmt.run('sheetsUrl', sheetsUrl ?? '');
+  res.json({ ok: true });
+});
 
 // ── Rutas de página ───────────────────────────────────────────
 

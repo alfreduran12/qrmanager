@@ -24,7 +24,7 @@
 const SHEET_NAME = 'Equipos QR';
 
 // Columnas de la cabecera (en el mismo orden que se guardan los datos)
-const HEADERS = ['Fecha', 'N° de Serie', 'Nombre', 'Categoría', 'Specs', 'Descripción', 'URL QR'];
+const HEADERS = ['Fecha', 'N° de Serie', 'Nombre', 'Categoría', 'Specs', 'Descripción', 'URL QR', 'Vista QR'];
 
 /**
  * Recibe los datos del sistema QR (POST desde el navegador).
@@ -56,7 +56,18 @@ function doPost(e) {
       data.specs  || '',
       data.desc   || '',
       data.url    || '',
+      '',  // Vista QR — se rellena con fórmula IMAGE abajo
     ]);
+
+    // Insertar imagen del QR en la última columna
+    const lastRow = sheet.getLastRow();
+    const qrSrc = data.qrImgUrl || (data.url
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.url)}`
+      : '');
+    if (qrSrc) {
+      sheet.getRange(lastRow, 8).setFormula(`=IMAGE("${qrSrc}")`);
+      sheet.setRowHeight(lastRow, 210);
+    }
 
     return jsonResponse({ ok: true, msg: `"${data.nombre}" agregado al Sheet.` });
 
@@ -97,6 +108,7 @@ function formatHeaders(sheet) {
   sheet.setColumnWidth(5, 240); // Specs
   sheet.setColumnWidth(6, 280); // Descripción
   sheet.setColumnWidth(7, 360); // URL
+  sheet.setColumnWidth(8, 220); // Vista QR
 }
 
 function jsonResponse(obj, isError) {
