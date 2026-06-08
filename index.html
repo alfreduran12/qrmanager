@@ -850,7 +850,7 @@
 
     /* ── Logo preload ────────────────────────────────────────── */
     let logoImg = new Image();
-    logoImg.src = '/logo.png';   // servido por el backend como estático
+    logoImg.src = '/Logo.jpg';   // servido por el backend como estático
 
     /* ── QR compuesto (canvas con SKU + nombre + logo) ───────── */
     let composedQRDataUrl = null;
@@ -896,28 +896,11 @@
 
       let y = pad;
 
-      // ── Logo arriba, centrado, forzado a negro ──
-      // El PNG puede ser blanco-sobre-transparente (para fondos oscuros).
-      // Lo renderizamos en un canvas auxiliar y pintamos negro sobre la silueta
-      // para que quede siempre negro sobre el fondo blanco del QR.
+      // ── Logo arriba, centrado ──
+      // JPG con fondo blanco: se dibuja directo, el blanco se funde con el canvas
       if (hasLogo) {
         const lx = Math.floor((W - logoMaxW) / 2);
-
-        const tmp = document.createElement('canvas');
-        tmp.width  = logoMaxW;
-        tmp.height = logoDrawH;
-        const tctx = tmp.getContext('2d');
-
-        // 1. Dibuja el logo original
-        tctx.drawImage(logoImg, 0, 0, logoMaxW, logoDrawH);
-
-        // 2. Pinta negro SOLO donde hay píxeles no-transparentes (silueta)
-        tctx.globalCompositeOperation = 'source-in';
-        tctx.fillStyle = '#000000';
-        tctx.fillRect(0, 0, logoMaxW, logoDrawH);
-
-        // 3. Vuelca al canvas principal
-        ctx.drawImage(tmp, lx, y);
+        ctx.drawImage(logoImg, lx, y, logoMaxW, logoDrawH);
         y += logoDrawH + 14;
       }
 
