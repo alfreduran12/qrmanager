@@ -878,15 +878,25 @@
       // QR
       ctx.drawImage(rawQR, pad, pad, qrSize, qrSize);
 
-      // Logo centrado sobre el QR (solo si cargó)
+      // Logo centrado sobre el QR — respeta el aspecto ratio original
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoSize = 54;
-        const lx = pad + (qrSize - logoSize) / 2;
-        const ly = pad + (qrSize - logoSize) / 2;
-        // fondo blanco detrás del logo
+        // Ancho máximo: 40% del QR — nivel H soporta 30% de oclusión SÓLIDA,
+        // pero como este logo tiene fondo transparente el área real cubierta es ~8%
+        const maxLogoW = Math.floor(qrSize * 0.40);
+        const aspect   = logoImg.naturalWidth / logoImg.naturalHeight;
+        const logoW    = maxLogoW;
+        const logoH    = Math.round(logoW / aspect);
+
+        const lx = pad + Math.floor((qrSize - logoW) / 2);
+        const ly = pad + Math.floor((qrSize - logoH) / 2);
+
+        // Fondo del color del QR detrás del logo para no mezclar módulos
+        const bgPad = 7;
         ctx.fillStyle = '#f2f2ed';
-        ctx.fillRect(lx - 7, ly - 7, logoSize + 14, logoSize + 14);
-        ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+        ctx.fillRect(lx - bgPad, ly - bgPad, logoW + bgPad * 2, logoH + bgPad * 2);
+
+        // Logo sin distorsión
+        ctx.drawImage(logoImg, lx, ly, logoW, logoH);
       }
 
       // Línea separadora
