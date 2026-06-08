@@ -47,7 +47,7 @@ function doPost(e) {
       return jsonResponse({ ok: true, msg: 'Prueba de conexión exitosa — no se guardó en el Sheet.' });
     }
 
-    // Agregar fila con los datos del equipo
+    // Agregar fila con los datos del equipo (operación principal)
     sheet.appendRow([
       data.fecha  || new Date().toLocaleString('es-CO'),
       data.serie  || '',
@@ -56,20 +56,23 @@ function doPost(e) {
       data.specs  || '',
       data.desc   || '',
       data.url    || '',
-      '',  // Vista QR — se rellena con fórmula IMAGE abajo
+      '',  // Vista QR — se intenta rellenar abajo
     ]);
 
-    // Insertar imagen del QR en la última columna
-    const lastRow = sheet.getLastRow();
-    const qrSrc = data.qrImgUrl || (data.url
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.url)}`
-      : '');
-    if (qrSrc) {
-      sheet.getRange(lastRow, 8).setFormula(`=IMAGE("${qrSrc}")`);
-      sheet.setRowHeight(lastRow, 210);
-    }
+    // Insertar imagen QR — bloque separado para que un fallo aquí
+    // no revierta el appendRow ya ejecutado
+    try {
+      const lastRow = sheet.getLastRow();
+      const baseUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=';
+      const qrSrc   = data.qrImgUrl
+        || (data.url ? baseUrl + encodeURIComponent(data.url) : '');
+      if (qrSrc) {
+        sheet.getRange(lastRow, 8).setFormula('=IMAGE("' + qrSrc + '")');
+        sheet.setRowHeight(lastRow, 210);
+      }
+    } catch (_) { /* imagen opcional — la fila ya fue guardada */ }
 
-    return jsonResponse({ ok: true, msg: `"${data.nombre}" agregado al Sheet.` });
+    return jsonResponse({ ok: true, msg: '"' + data.nombre + '" agregado al Sheet.' });
 
   } catch (err) {
     return jsonResponse({ ok: false, error: err.message }, true);
