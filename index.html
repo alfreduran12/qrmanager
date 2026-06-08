@@ -487,6 +487,95 @@
     }
     .scan-verify-btn:hover { background: rgba(197,232,41,0.14); }
 
+    /* ── Inventario ── */
+    .inv-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; }
+    .inv-count  { font-size:12px; color:var(--muted); padding-bottom:6px; }
+
+    .equipo-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+    .equipo-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .equipo-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .equipo-info { min-width: 0; }
+    .equipo-serie {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      display: block;
+      line-height: 1;
+    }
+    .equipo-nombre {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      display: block;
+      margin-top: 5px;
+    }
+    .equipo-cat {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+    .equipo-btns { display:flex; gap:6px; align-items:center; flex-wrap:wrap; flex-shrink:0; }
+
+    .equipo-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .equipo-btn:hover          { border-color: rgba(255,255,255,0.2); color: var(--white); }
+    .equipo-btn.edit:hover     { border-color: var(--accent); color: var(--accent); }
+    .equipo-btn.del:hover      { border-color: var(--error);  color: var(--error); }
+
+    .disp-badge {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .disp-on  { color:var(--success); border-color:rgba(74,222,128,0.3); background:rgba(74,222,128,0.07); }
+    .disp-off { color:var(--error);   border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.07); }
+    .disp-badge:hover { opacity: 0.75; }
+
+    .equipo-specs-row { padding: 0 20px 14px; display:flex; flex-wrap:wrap; gap:6px; }
+
+    .equipo-edit-panel {
+      border-top: 1px solid var(--border);
+      padding: 20px;
+      background: var(--bg3);
+    }
+
+    .inv-empty { text-align:center; padding:60px 20px; }
+    .inv-empty-icon { font-size:40px; opacity:0.2; margin-bottom:16px; }
+    .inv-empty-title { font-family:var(--font-display); font-size:24px; color:rgba(255,255,255,0.15); margin-bottom:8px; }
+    .inv-empty-sub   { font-size:13px; color:var(--muted); }
+
     /* ── Toast ── */
     .toast {
       position: fixed;
@@ -527,6 +616,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('generar', this)">Generar QR</button>
     <button class="tab-btn" onclick="switchTab('escanear', this)">Escanear QR</button>
+    <button class="tab-btn" onclick="switchTab('inventario', this)">Inventario</button>
   </div>
 
   <!-- Main -->
@@ -713,6 +803,29 @@
       </div>
     </div>
 
+    <!-- ══ TAB: INVENTARIO ══ -->
+    <div id="tab-inventario" class="tab-panel">
+      <div class="scanner-wrap">
+
+        <div class="inv-header">
+          <div>
+            <p class="label" style="margin-bottom:6px">Base de datos</p>
+            <h2 class="section-title">EQUIPOS<br/><span style="color:var(--accent)">REGISTRADOS</span></h2>
+          </div>
+          <span id="inv-count" class="inv-count"></span>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <input id="inv-search" type="text" class="form-input"
+                 placeholder="Buscar por nombre, serie o categoría…"
+                 oninput="filterInventario()" style="width:100%;" />
+        </div>
+
+        <div id="inv-list"></div>
+
+      </div>
+    </div>
+
   </main>
 
   <!-- Hidden div para escaneo de archivos (requerido por html5-qrcode) -->
@@ -833,6 +946,7 @@
       document.getElementById('tab-' + tab).classList.add('active');
       btn.classList.add('active');
       if (tab !== 'escanear') stopScanner();
+      if (tab === 'inventario') loadInventario();
     }
 
     /* ── Toast ───────────────────────────────────────────────── */
@@ -1031,6 +1145,13 @@
 
       // Compone el QR con SKU + nombre + logo
       await composeQRCanvas(data);
+
+      // Guarda en la BD local (aparece en Inventario)
+      fetch('/api/equipos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serie: data.serie, nombre: data.nombre, cat: data.cat, specs: data.specs, desc: data.desc }),
+      }).catch(() => {});  // silencioso si ya existe (409)
 
       // Sync to Google Sheets si está configurado
       const sheetsUrl = getConfig().sheetsUrl;
@@ -1413,6 +1534,166 @@
             <button class="scan-verify-btn" style="background:rgba(197,232,41,0.12);color:var(--accent);border-color:rgba(197,232,41,0.25);" onclick="sendLastScannedToSheets(this)">Guardar en Sheets</button>
           </div>
         </div>`;
+    }
+
+    /* ── Inventario ─────────────────────────────────────────── */
+    let allEquipos = [];
+
+    async function loadInventario() {
+      document.getElementById('inv-list').innerHTML = `
+        <div class="inv-empty">
+          <div class="inv-empty-icon">⏳</div>
+          <p class="inv-empty-sub">Cargando equipos…</p>
+        </div>`;
+
+      try {
+        const res = await fetch('/api/equipos', { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) throw new Error();
+        allEquipos = await res.json();
+        renderInventario(allEquipos);
+      } catch (_) {
+        document.getElementById('inv-list').innerHTML = `
+          <div class="inv-empty">
+            <div class="inv-empty-icon">⚠</div>
+            <p class="inv-empty-sub">No se pudieron cargar los equipos</p>
+          </div>`;
+      }
+    }
+
+    function filterInventario() {
+      const q = document.getElementById('inv-search').value.toLowerCase().trim();
+      if (!q) { renderInventario(allEquipos); return; }
+      renderInventario(allEquipos.filter(e =>
+        (e.serie  || '').toLowerCase().includes(q) ||
+        (e.nombre || '').toLowerCase().includes(q) ||
+        (e.cat    || '').toLowerCase().includes(q) ||
+        (e.specs  || '').toLowerCase().includes(q)
+      ));
+    }
+
+    function renderInventario(equipos) {
+      const countEl = document.getElementById('inv-count');
+      countEl.textContent = `${equipos.length} equipo${equipos.length !== 1 ? 's' : ''}`;
+
+      if (!equipos.length) {
+        document.getElementById('inv-list').innerHTML = `
+          <div class="inv-empty">
+            <div class="inv-empty-icon">📦</div>
+            <p class="inv-empty-title">SIN RESULTADOS</p>
+            <p class="inv-empty-sub">Genera un QR para registrar el primer equipo</p>
+          </div>`;
+        return;
+      }
+
+      const CATS = ['camaras','lentes','tripodes','iluminacion','audio','drones',
+                    'monitores','grip','steadicam','sliders','otro'];
+
+      document.getElementById('inv-list').innerHTML = equipos.map(e => {
+        const catLabel = CATEGORIAS_LABEL[e.cat] || e.cat || '—';
+        const dispOn   = e.disponible !== false;
+        const specs    = (e.specs || '').split(',').map(s => s.trim()).filter(Boolean);
+        const sid      = CSS.escape(e.serie);
+
+        return `
+        <div class="equipo-card" id="card-${sid}">
+          <div class="equipo-card-head">
+            <div class="equipo-info">
+              <span class="equipo-serie">${esc(e.serie)}</span>
+              <span class="equipo-nombre">${esc(e.nombre)}</span>
+              <span class="equipo-cat">${catLabel}</span>
+            </div>
+            <div class="equipo-btns">
+              <span class="disp-badge ${dispOn ? 'disp-on' : 'disp-off'}"
+                    onclick="toggleDisponible('${esc(e.serie)}',${dispOn})">
+                ${dispOn ? '● Disponible' : '● No disponible'}
+              </span>
+              <button class="equipo-btn edit" onclick="toggleEditPanel('${esc(e.serie)}')">Editar</button>
+              <button class="equipo-btn del"  onclick="deleteEquipo('${esc(e.serie)}')">Eliminar</button>
+            </div>
+          </div>
+          ${specs.length ? `<div class="equipo-specs-row">${specs.map(s=>`<span class="spec-chip">${esc(s)}</span>`).join('')}</div>` : ''}
+          <div class="equipo-edit-panel" id="ep-${sid}" style="display:none;">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input id="ep-n-${sid}" class="form-input" type="text" value="${esc(e.nombre)}" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Categoría</label>
+                <select id="ep-c-${sid}" class="form-input">
+                  ${CATS.map(c=>`<option value="${c}"${e.cat===c?' selected':''}>${CATEGORIAS_LABEL[c]}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Specs <span style="color:var(--muted);font-size:11px;">(separadas por coma)</span></label>
+                <input id="ep-s-${sid}" class="form-input" type="text" value="${esc(e.specs||'')}" />
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Descripción</label>
+                <textarea id="ep-d-${sid}" class="form-input" rows="2" style="resize:vertical;">${esc(e.desc||'')}</textarea>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px;">
+              <button class="btn-primary" style="flex:1;" onclick="saveEquipo('${esc(e.serie)}')">Guardar cambios</button>
+              <button class="btn-secondary" onclick="toggleEditPanel('${esc(e.serie)}')">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function toggleEditPanel(serie) {
+      const panel = document.getElementById('ep-' + CSS.escape(serie));
+      if (!panel) return;
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function saveEquipo(serie) {
+      const sid    = CSS.escape(serie);
+      const nombre = document.getElementById(`ep-n-${sid}`).value.trim();
+      const cat    = document.getElementById(`ep-c-${sid}`).value;
+      const specs  = document.getElementById(`ep-s-${sid}`).value.trim();
+      const desc   = document.getElementById(`ep-d-${sid}`).value.trim();
+
+      if (!nombre) { showToast('El nombre es requerido', true); return; }
+
+      try {
+        const res = await fetch(`/api/equipo/${encodeURIComponent(serie)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, cat, specs, desc }),
+        });
+        if (!res.ok) throw new Error();
+        showToast('Equipo actualizado ✓');
+        loadInventario();
+      } catch (_) {
+        showToast('Error al guardar', true);
+      }
+    }
+
+    async function toggleDisponible(serie, current) {
+      try {
+        await fetch(`/api/equipo/${encodeURIComponent(serie)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ disponible: !current }),
+        });
+        loadInventario();
+      } catch (_) {
+        showToast('Error al actualizar disponibilidad', true);
+      }
+    }
+
+    async function deleteEquipo(serie) {
+      if (!confirm(`¿Eliminar "${serie}"?\nEsta acción no se puede deshacer.`)) return;
+      try {
+        const res = await fetch(`/api/equipo/${encodeURIComponent(serie)}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        showToast('Equipo eliminado');
+        loadInventario();
+      } catch (_) {
+        showToast('Error al eliminar', true);
+      }
     }
 
     /* ── Utils ───────────────────────────────────────────────── */
