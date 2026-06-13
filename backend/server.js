@@ -66,17 +66,38 @@ app.post('/api/config', (req, res) => {
 // ── Rutas de página ───────────────────────────────────────────
 
 // Hoja de vida pública — escaneada desde el QR
-// URL: /equipo?id=SERIE&n=Nombre&c=cat&sp=specs&desc=...
-app.get('/equipo', (req, res) => {
-  const { id: serie, n: nombre, c: cat, sp: specs, desc } = req.query;
+// URL: /equipo/:serie
+app.get('/equipo/:serie', (req, res) => {
+  const serie = decodeURIComponent(req.params.serie);
 
-  const row = serie
-    ? db.prepare('SELECT * FROM equipos WHERE serie = ?').get(serie)
-    : null;
+  const row = db.prepare('SELECT * FROM equipos WHERE serie = ?').get(serie);
 
-  const data = row
-    ? equipoRow(row)
-    : { serie, nombre, cat, specs, desc, disponible: null };
+  if (!row) {
+    return res.status(404).send(`<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipo no encontrado — La Madriguera</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0c0e09;color:#f2f2ed;font-family:'Outfit',sans-serif;
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .wrap{max-width:400px;text-align:center;}
+  .brand{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#7a7a72;margin-bottom:24px;}
+  .code{font-size:48px;font-weight:700;color:#c5e829;margin-bottom:8px;}
+  .msg{font-size:15px;color:#7a7a72;}
+  .serie{margin-top:16px;font-size:12px;color:rgba(122,122,114,0.5);}
+</style>
+</head><body>
+<div class="wrap">
+  <p class="brand">LA MADRIGUERA · RENTAL HOUSE</p>
+  <p class="code">404</p>
+  <p class="msg">Equipo no encontrado en el inventario.</p>
+  <p class="serie">Serie: ${serie}</p>
+</div>
+</body></html>`);
+  }
+
+  const data = equipoRow(row);
 
   const specsArr = (data.specs || '').split(',').map(s => s.trim()).filter(Boolean);
   const catLabel = {

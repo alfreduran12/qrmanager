@@ -1188,17 +1188,8 @@
 
     function buildQRUrl(data) {
       const cfg = getConfig();
-      const domain = cfg.domain || 'https://lamadriguera.co';
-      const params = new URLSearchParams({
-        id:   data.serie,
-        n:    data.nombre,
-        c:    data.cat,
-        sp:   data.specs,
-        desc: data.desc,
-      });
-      // Remove empty params
-      [...params.entries()].forEach(([k, v]) => { if (!v) params.delete(k); });
-      return `${domain}/equipo?${params.toString()}`;
+      const domain = (cfg.domain || 'https://lamadriguera.co').replace(/\/$/, '');
+      return `${domain}/equipo/${encodeURIComponent(data.serie)}`;
     }
 
     async function generateQR() {
