@@ -1053,12 +1053,14 @@
 
     /* ── QR compuesto (canvas con SKU + nombre + logo) ───────── */
     let composedQRDataUrl = null;
+    let rawQRDataUrl = null;
 
     async function composeQRCanvas(data) {
       await new Promise(r => setTimeout(r, 80));
 
       const rawQR = document.querySelector('#qr-canvas canvas');
       if (!rawQR) return;
+      rawQRDataUrl = rawQR.toDataURL('image/png');
 
       const qrSize  = 260;
       const pad     = 20;
@@ -1301,36 +1303,48 @@
     function printQR() {
       if (!currentEquipo) { showToast('Genera el QR primero', true); return; }
 
-      const src = composedQRDataUrl
-        || document.querySelector('#qr-canvas canvas')?.toDataURL('image/png')
-        || document.querySelector('#qr-canvas img')?.src;
-      if (!src) { showToast('Genera el QR primero', true); return; }
+      const qrSrc = rawQRDataUrl
+        || document.querySelector('#qr-canvas canvas')?.toDataURL('image/png');
+      if (!qrSrc) { showToast('Genera el QR primero', true); return; }
 
-      const data    = currentEquipo;
-      const specs   = data.specs ? data.specs.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const data     = currentEquipo;
+      const specs    = data.specs ? data.specs.split(',').map(s => s.trim()).filter(Boolean) : [];
       const catLabel = CATEGORIAS_LABEL[data.cat] || data.cat;
       const fecha    = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+
+      // Embeber logo como data URL para que esté disponible sin red en la ventana de impresión
+      let logoSrc = '';
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        const tmpC = document.createElement('canvas');
+        tmpC.width  = 360;
+        tmpC.height = Math.round(logoImg.naturalHeight * 360 / logoImg.naturalWidth);
+        tmpC.getContext('2d').drawImage(logoImg, 0, 0, tmpC.width, tmpC.height);
+        logoSrc = tmpC.toDataURL('image/jpeg', 0.9);
+      }
 
       const w = window.open('', '_blank');
       w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
         <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #111; margin: 0; padding: 32px; }
-          .wrap { max-width: 360px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 28px; }
-          .brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 20px; }
-          .nombre { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
-          .cat { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #777; margin-bottom: 16px; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #111; padding: 32px; }
+          .wrap { max-width: 320px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 24px; }
+          .brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 16px; }
+          .accent-bar { width: 32px; height: 2px; background: #c5e829; margin-bottom: 16px; }
+          .logo-img { display: block; max-width: 180px; width: 100%; height: auto; margin: 0 auto 16px; }
           .qr-img { width: 200px; height: 200px; margin: 0 auto 20px; display: block; border: 6px solid #fff; outline: 1px solid #eee; }
-          .row { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid #f0f0f0; font-size: 12px; }
+          .nombre { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+          .cat { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #777; margin-bottom: 14px; }
+          .row { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px solid #f0f0f0; font-size: 12px; }
           .row-label { color: #888; }
-          .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+          .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
           .chip { padding: 3px 8px; background: #f5f5f5; border: 1px solid #e5e5e5; font-size: 10px; color: #666; }
-          .accent-bar { width: 32px; height: 2px; background: #c5e829; margin-bottom: 20px; }
         </style>
       </head><body>
         <div class="wrap">
           <p class="brand">La Madriguera Rental House</p>
           <div class="accent-bar"></div>
-          <img src="${src}" class="qr-img" alt="QR ${esc(data.nombre)}" />
+          ${logoSrc ? `<img src="${logoSrc}" class="logo-img" alt="La Madriguera" />` : ''}
+          <img src="${qrSrc}" class="qr-img" alt="QR ${esc(data.nombre)}" />
           <p class="nombre">${esc(data.nombre)}</p>
           <p class="cat">${catLabel}</p>
           <div class="row"><span class="row-label">N° de serie</span><span>${esc(data.serie)}</span></div>
