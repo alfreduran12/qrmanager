@@ -7,12 +7,27 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Germania+One&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'Germania One';
+      src: url('/Material de Marca/TIPOGRAFIA GermaniaOne-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Raleway';
+      src: url('/Material de Marca/TIPOGRAFIA Raleway-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
 
@@ -20,12 +35,12 @@
       --bg:      #0c0e09;
       --bg2:     #141610;
       --bg3:     #1a1d14;
-      --accent:  #c5e829;
+      --accent:  #3dbf32;
       --white:   #f2f2ed;
       --muted:   #7a7a72;
       --border:  rgba(255,255,255,0.08);
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-body:    'Outfit', sans-serif;
+      --font-display: 'Raleway', sans-serif;
+      --font-body:    'Raleway', sans-serif;
       --error: #f87171;
       --success: #4ade80;
     }
@@ -69,11 +84,9 @@
       align-items: center;
       gap: 16px;
     }
-    .header-brand-name {
-      font-family: var(--font-display);
-      font-size: 22px;
-      letter-spacing: 0.04em;
-      color: var(--white);
+    .header-logo {
+      height: 30px;
+      width: auto;
     }
     .header-brand-sep {
       width: 1px;
@@ -146,7 +159,9 @@
     .section-title {
       font-family: var(--font-display);
       font-size: 44px;
-      line-height: 0.9;
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.01em;
       margin-bottom: 32px;
     }
 
@@ -192,7 +207,7 @@
       transition: background 0.2s, transform 0.15s;
       width: 100%;
     }
-    .btn-primary:hover { background: #d4f535; transform: translateY(-1px); }
+    .btn-primary:hover { background: #4dd142; transform: translateY(-1px); }
     .btn-primary:disabled { background: rgba(255,255,255,0.08); color: var(--muted); cursor: default; transform: none; }
 
     .btn-secondary {
@@ -246,9 +261,10 @@
     }
     .preview-empty-text {
       font-family: var(--font-display);
-      font-size: 22px;
+      font-size: 20px;
+      font-weight: 700;
       color: rgba(255,255,255,0.2);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.01em;
       margin-bottom: 8px;
     }
     .preview-empty-sub {
@@ -275,8 +291,9 @@
     }
     .hoja-card-nombre {
       font-family: var(--font-display);
-      font-size: 28px;
-      letter-spacing: 0.02em;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
       line-height: 1;
       margin-bottom: 4px;
     }
@@ -374,7 +391,7 @@
       padding: 60px 40px;
     }
     .scanner-idle-icon { font-size: 48px; opacity: 0.2; margin-bottom: 16px; }
-    .scanner-idle-text { font-family: var(--font-display); font-size: 28px; color: rgba(255,255,255,0.25); letter-spacing: 0.05em; margin-bottom: 8px; }
+    .scanner-idle-text { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: rgba(255,255,255,0.25); letter-spacing: 0.01em; margin-bottom: 8px; }
     .scanner-idle-sub { font-size: 13px; color: var(--muted); }
 
     .scanner-overlay {
@@ -543,8 +560,9 @@
     .equipo-info { min-width: 0; flex: 1; }
     .equipo-serie {
       font-family: var(--font-display);
-      font-size: 22px;
-      letter-spacing: 0.06em;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       color: var(--accent);
       display: block;
       line-height: 1;
@@ -658,8 +676,171 @@
     /* Empty state */
     .inv-empty { text-align: center; padding: 64px 20px; }
     .inv-empty-icon  { font-size: 40px; opacity: 0.15; margin-bottom: 18px; }
-    .inv-empty-title { font-family: var(--font-display); font-size: 26px; color: rgba(255,255,255,0.12); letter-spacing: 0.05em; margin-bottom: 8px; }
+    .inv-empty-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: rgba(255,255,255,0.12); letter-spacing: 0.01em; margin-bottom: 8px; }
     .inv-empty-sub   { font-size: 13px; color: var(--muted); }
+
+    /* ── Login screen ── */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-logo {
+      height: 36px;
+      width: auto;
+      margin-bottom: 44px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent);
+      padding: 36px 32px 32px;
+    }
+    .login-title {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .login-title span { color: var(--accent); }
+    .login-subtitle {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .login-error {
+      font-size: 12px;
+      color: var(--error);
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: rgba(248,113,113,0.07);
+      border: 1px solid rgba(248,113,113,0.2);
+      display: none;
+    }
+
+    /* ── Header user area ── */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-user-badge {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+    }
+    .header-logout {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .header-logout:hover { color: var(--error); border-color: rgba(248,113,113,0.4); }
+    .header-users-btn {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(61,191,50,0.08);
+      border: 1px solid rgba(61,191,50,0.3);
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: none;
+    }
+    .header-users-btn:hover { background: rgba(61,191,50,0.14); }
+
+    /* ── Users modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 150;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--white); }
+    .modal-body { padding: 24px; }
+    .user-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      gap: 12px;
+    }
+    .user-row:last-child { border-bottom: none; }
+    .user-info { min-width: 0; }
+    .user-name { font-size: 14px; font-weight: 600; }
+    .user-role {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .role-admin { color: var(--accent); }
+    .modal-section-title {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 20px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
 
     /* ── Toast ── */
     .toast {
@@ -685,16 +866,113 @@
 </head>
 <body>
 
+  <!-- Login screen -->
+  <div id="login-screen" class="login-screen">
+    <img src="/Material de Marca/logo-la-madriguera-tipogr1.png" alt="La Madriguera" class="login-logo" />
+    <div class="login-card">
+      <p class="login-title">ACCESO <span>·</span></p>
+      <p class="login-subtitle">Sistema QR · Equipos</p>
+      <div id="login-error" class="login-error"></div>
+      <div class="form">
+        <div class="field">
+          <label class="field-label">Usuario</label>
+          <input id="login-user" type="text" class="field-input" placeholder="nombre de usuario"
+                 autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <div class="field">
+          <label class="field-label">Contraseña</label>
+          <input id="login-pass" type="password" class="field-input" placeholder="••••••••"
+                 autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <button id="login-btn" class="btn-primary" onclick="doLogin()" style="margin-top:8px;">
+          Iniciar sesión
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Usuarios -->
+  <div id="modal-users" class="modal-overlay" onclick="if(event.target===this)closeUsersModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">USUARIOS</span>
+        <button class="modal-close" onclick="closeUsersModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="users-list"></div>
+
+        <p class="modal-section-title">Cambiar mi contraseña</p>
+        <div class="form" style="gap:12px;">
+          <div class="field">
+            <label class="field-label">Contraseña actual</label>
+            <input id="pw-current" type="password" class="field-input" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label class="field-label">Nueva contraseña</label>
+            <input id="pw-new" type="password" class="field-input" placeholder="mínimo 6 caracteres" />
+          </div>
+          <button class="btn-secondary" onclick="changePassword()" style="text-align:center;">
+            Actualizar contraseña
+          </button>
+        </div>
+
+        <p class="modal-section-title">Cambiar mi usuario</p>
+        <div class="form" style="gap:12px;">
+          <div class="field">
+            <label class="field-label">Nuevo nombre de usuario</label>
+            <input id="un-new" type="text" class="field-input" placeholder="mínimo 3 caracteres" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="field-label">Confirma con tu contraseña</label>
+            <input id="un-pass" type="password" class="field-input" placeholder="••••••••" />
+          </div>
+          <button class="btn-secondary" onclick="changeUsername()" style="text-align:center;">
+            Actualizar usuario
+          </button>
+          <p style="font-size:11px;color:var(--muted);line-height:1.5;">
+            Al cambiar el usuario se cerrará la sesión automáticamente.
+          </p>
+        </div>
+
+        <div id="admin-section" style="display:none;">
+          <p class="modal-section-title">Nuevo usuario</p>
+          <div class="form" style="gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="field">
+                <label class="field-label">Usuario</label>
+                <input id="nu-user" type="text" class="field-input" placeholder="nombre" />
+              </div>
+              <div class="field">
+                <label class="field-label">Contraseña</label>
+                <input id="nu-pass" type="password" class="field-input" placeholder="••••••••" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">Rol</label>
+              <select id="nu-role" class="field-input">
+                <option value="operador">Operador</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="createUser()">Crear usuario</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="header">
     <div class="header-brand">
-      <span class="header-brand-name">LA MADRIGUERA</span>
+      <img src="/Material de Marca/logo-la-madriguera-tipogr1.png" alt="La Madriguera" class="header-logo" />
       <div class="header-brand-sep"></div>
       <span class="header-badge">Sistema QR · Equipos</span>
     </div>
-    <button class="header-back" onclick="window.location.href='../dise-o-web-la-madriguera/project/La%20Madriguera.html'">
-      ← Volver al sitio
-    </button>
+    <div class="header-right">
+      <span id="header-username" class="header-user-badge"></span>
+      <button class="header-users-btn" id="header-users-btn" onclick="openUsersModal()">Usuarios</button>
+      <button class="header-logout" onclick="logout()">Salir</button>
+    </div>
   </header>
 
   <!-- Tabs -->
@@ -923,6 +1201,198 @@
   <style id="print-style"></style>
 
   <script>
+    /* ── Auth ───────────────────────────────────────────────── */
+    const AUTH_KEY = 'lm_auth_token';
+    let currentUser = null;
+
+    function getToken() { return localStorage.getItem(AUTH_KEY); }
+    function setToken(t) { localStorage.setItem(AUTH_KEY, t); }
+    function clearToken() { localStorage.removeItem(AUTH_KEY); }
+
+    function apiFetch(url, options = {}) {
+      const token = getToken();
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(options.headers || {}),
+        },
+      }).then(res => {
+        if (res.status === 401) { clearToken(); showLoginScreen(); }
+        return res;
+      });
+    }
+
+    async function checkAuth() {
+      const token = getToken();
+      if (!token) { showLoginScreen(); return; }
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        if (res.ok) {
+          const user = await res.json();
+          onAuthSuccess(user);
+        } else {
+          clearToken();
+          showLoginScreen();
+        }
+      } catch { showLoginScreen(); }
+    }
+
+    function showLoginScreen() {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    function onAuthSuccess(user) {
+      currentUser = user;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('header-username').textContent = user.username;
+      if (user.role === 'admin') {
+        document.getElementById('header-users-btn').style.display = 'inline-block';
+      }
+      loadConfig();
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value;
+      const errorEl  = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+
+      if (!username || !password) {
+        errorEl.textContent = 'Ingresa usuario y contraseña';
+        errorEl.style.display = 'block'; return;
+      }
+      btn.disabled = true; btn.textContent = '…';
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setToken(data.token);
+          onAuthSuccess(data);
+        } else {
+          errorEl.textContent = data.error || 'Credenciales incorrectas';
+          errorEl.style.display = 'block';
+        }
+      } catch {
+        errorEl.textContent = 'Error de conexión';
+        errorEl.style.display = 'block';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Iniciar sesión';
+      }
+    }
+
+    async function logout() {
+      try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+      clearToken();
+      currentUser = null;
+      document.getElementById('header-username').textContent = '';
+      document.getElementById('header-users-btn').style.display = 'none';
+      document.getElementById('login-user').value = '';
+      document.getElementById('login-pass').value = '';
+      document.getElementById('login-error').style.display = 'none';
+      showLoginScreen();
+    }
+
+    /* ── Usuarios modal ──────────────────────────────────────── */
+    async function openUsersModal() {
+      document.getElementById('modal-users').classList.add('open');
+      document.getElementById('admin-section').style.display =
+        currentUser?.role === 'admin' ? 'block' : 'none';
+      await loadUsers();
+    }
+
+    function closeUsersModal() {
+      document.getElementById('modal-users').classList.remove('open');
+    }
+
+    async function loadUsers() {
+      const list = document.getElementById('users-list');
+      try {
+        const res = await apiFetch('/api/auth/users');
+        if (!res.ok) { list.innerHTML = ''; return; }
+        const users = await res.json();
+        list.innerHTML = users.map(u => `
+          <div class="user-row">
+            <div class="user-info">
+              <p class="user-name">${esc(u.username)}</p>
+              <p class="user-role ${u.role === 'admin' ? 'role-admin' : ''}">${u.role}</p>
+            </div>
+            ${u.username !== currentUser?.username
+              ? `<button class="btn-danger" style="padding:6px 12px;font-size:10px;"
+                         onclick="deleteUser(${u.id},'${esc(u.username)}')">Eliminar</button>`
+              : '<span style="font-size:10px;color:var(--muted);">Tú</span>'}
+          </div>`).join('');
+      } catch { list.innerHTML = ''; }
+    }
+
+    async function deleteUser(id, username) {
+      if (!confirm(`¿Eliminar usuario "${username}"?`)) return;
+      const res = await apiFetch(`/api/auth/users/${id}`, { method: 'DELETE' });
+      if (res.ok) { showToast('Usuario eliminado'); loadUsers(); }
+      else { const d = await res.json(); showToast(d.error || 'Error', true); }
+    }
+
+    async function createUser() {
+      const username = document.getElementById('nu-user').value.trim();
+      const password = document.getElementById('nu-pass').value;
+      const role     = document.getElementById('nu-role').value;
+      if (!username || !password) { showToast('Completa todos los campos', true); return; }
+
+      const res = await apiFetch('/api/auth/users', {
+        method: 'POST', body: JSON.stringify({ username, password, role }),
+      });
+      if (res.ok) {
+        showToast('Usuario creado ✓');
+        document.getElementById('nu-user').value = '';
+        document.getElementById('nu-pass').value = '';
+        loadUsers();
+      } else {
+        const d = await res.json(); showToast(d.error || 'Error', true);
+      }
+    }
+
+    async function changeUsername() {
+      const newUsername     = document.getElementById('un-new').value.trim();
+      const currentPassword = document.getElementById('un-pass').value;
+      if (!newUsername || !currentPassword) { showToast('Completa todos los campos', true); return; }
+
+      const res = await apiFetch('/api/auth/username', {
+        method: 'PUT', body: JSON.stringify({ newUsername, currentPassword }),
+      });
+      if (res.ok) {
+        showToast('Usuario actualizado — inicia sesión de nuevo');
+        setTimeout(() => logout(), 1200);
+      } else {
+        const d = await res.json(); showToast(d.error || 'Error', true);
+      }
+    }
+
+    async function changePassword() {
+      const currentPassword = document.getElementById('pw-current').value;
+      const newPassword     = document.getElementById('pw-new').value;
+      if (!currentPassword || !newPassword) { showToast('Completa todos los campos', true); return; }
+
+      const res = await apiFetch('/api/auth/password', {
+        method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (res.ok) {
+        showToast('Contraseña actualizada ✓');
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value = '';
+      } else {
+        const d = await res.json(); showToast(d.error || 'Error', true);
+      }
+    }
+
     /* ── Config ──────────────────────────────────────────────── */
     const CONFIG_KEY = 'lm_qr_config';
 
@@ -938,10 +1408,10 @@
     // Carga config desde el servidor (fuente de verdad) y sincroniza al localStorage
     async function loadConfig() {
       try {
-        const res = await fetch('/api/config', { signal: AbortSignal.timeout(3000) });
+        const res = await apiFetch('/api/config');
         if (res.ok) {
           const serverCfg = await res.json();
-          saveLocalConfig(serverCfg);          // actualiza caché local
+          saveLocalConfig(serverCfg);
         }
       } catch (_) { /* sin conexión — usa localStorage */ }
 
@@ -954,10 +1424,7 @@
       const val = document.getElementById('domain-input').value.trim().replace(/\/$/, '');
       saveLocalConfig({ domain: val });
       try {
-        await fetch('/api/config', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: val }),
-        });
+        await apiFetch('/api/config', { method: 'POST', body: JSON.stringify({ domain: val }) });
       } catch (_) {}
       const status = document.getElementById('domain-status');
       status.style.display = 'inline';
@@ -968,10 +1435,7 @@
       const val = document.getElementById('sheets-input').value.trim();
       saveLocalConfig({ sheetsUrl: val });
       try {
-        await fetch('/api/config', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sheetsUrl: val }),
-        });
+        await apiFetch('/api/config', { method: 'POST', body: JSON.stringify({ sheetsUrl: val }) });
       } catch (_) {}
       const status = document.getElementById('sheets-status');
       status.textContent = '✓ Guardado';
@@ -1049,7 +1513,7 @@
 
     /* ── Logo preload ────────────────────────────────────────── */
     let logoImg = new Image();
-    logoImg.src = '/Logo.jpg';   // servido por el backend como estático
+    logoImg.src = '/Material de Marca/logo-la-madriguera-tipogr.png';
 
     /* ── QR compuesto (canvas con SKU + nombre + logo) ───────── */
     let composedQRDataUrl = null;
@@ -1120,7 +1584,7 @@
       ctx.textAlign = 'center';
 
       // SKU — negro bold
-      ctx.font = 'bold 13px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.font = 'bold 13px "Raleway","Helvetica Neue",Arial,sans-serif';
       ctx.fillStyle = '#000000';
       ctx.fillText(data.serie, W / 2, y + 13);
       y += 20;
@@ -1129,14 +1593,14 @@
       const nameText = data.nombre.length > 34
         ? data.nombre.slice(0, 31) + '…'
         : data.nombre;
-      ctx.font = '400 12px "Outfit","Helvetica Neue",Arial,sans-serif';
+      ctx.font = '400 12px "Raleway","Helvetica Neue",Arial,sans-serif';
       ctx.fillStyle = '#000000';
       ctx.fillText(nameText, W / 2, y + 10);
       y += 18;
 
       // Specs — negro
       if (specsLine) {
-        ctx.font = '400 10px "Outfit","Helvetica Neue",Arial,sans-serif';
+        ctx.font = '400 10px "Raleway","Helvetica Neue",Arial,sans-serif';
         ctx.fillStyle = '#333333';
         ctx.fillText(specsLine, W / 2, y + 8);
       }
@@ -1225,11 +1689,10 @@
       await composeQRCanvas(data);
 
       // Guarda en la BD local (aparece en Inventario)
-      fetch('/api/equipos', {
+      apiFetch('/api/equipos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ serie: data.serie, nombre: data.nombre, cat: data.cat, specs: data.specs, desc: data.desc }),
-      }).catch(() => {});  // silencioso si ya existe (409)
+      }).catch(() => {});
 
       // Sync to Google Sheets si está configurado
       const sheetsUrl = getConfig().sheetsUrl;
@@ -1320,7 +1783,7 @@
           body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #111; padding: 32px; }
           .wrap { max-width: 320px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 24px; }
           .brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 16px; }
-          .accent-bar { width: 32px; height: 2px; background: #c5e829; margin-bottom: 16px; }
+          .accent-bar { width: 32px; height: 2px; background: #3dbf32; margin-bottom: 16px; }
           .logo-img { display: block; max-width: 180px; width: 100%; height: auto; margin: 0 auto 16px; }
           .qr-img { width: 200px; height: 200px; margin: 0 auto 20px; display: block; border: 6px solid #fff; outline: 1px solid #eee; }
           .nombre { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -1637,7 +2100,7 @@
         </div>`;
 
       try {
-        const res = await fetch('/api/equipos', { signal: AbortSignal.timeout(6000) });
+        const res = await apiFetch('/api/equipos');
         if (!res.ok) throw new Error();
         allEquipos = await res.json();
         renderInventario(allEquipos);
@@ -1748,9 +2211,8 @@
       if (!nombre) { showToast('El nombre es requerido', true); return; }
 
       try {
-        const res = await fetch(`/api/equipo/${encodeURIComponent(serie)}`, {
+        const res = await apiFetch(`/api/equipo/${encodeURIComponent(serie)}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nombre, cat, specs, desc }),
         });
         if (!res.ok) throw new Error();
@@ -1763,9 +2225,8 @@
 
     async function toggleDisponible(serie, current) {
       try {
-        await fetch(`/api/equipo/${encodeURIComponent(serie)}`, {
+        await apiFetch(`/api/equipo/${encodeURIComponent(serie)}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ disponible: !current }),
         });
         loadInventario();
@@ -1777,7 +2238,7 @@
     async function deleteEquipo(serie) {
       if (!confirm(`¿Eliminar "${serie}"?\nEsta acción no se puede deshacer.`)) return;
       try {
-        const res = await fetch(`/api/equipo/${encodeURIComponent(serie)}`, { method: 'DELETE' });
+        const res = await apiFetch(`/api/equipo/${encodeURIComponent(serie)}`, { method: 'DELETE' });
         if (!res.ok) throw new Error();
         showToast('Equipo eliminado');
         loadInventario();
@@ -1794,8 +2255,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Carga config desde el servidor (persistente entre dispositivos)
-      loadConfig();
+      checkAuth();
 
       // Limpia errores de validación al escribir
       ['f-nombre','f-cat','f-serie'].forEach(id => {
